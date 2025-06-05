@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+.fade-in {
+  animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.neon-border {
+  background: linear-gradient(90deg, #39ff14, #00ffea, #39ff14);
+  box-shadow: 0 0 12px 2px #39ff14, 0 0 40px 4px #00ffea inset;
+}
