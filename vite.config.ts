@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      target: "es2020", // Ensure this is set to a modern target
+    },
     server: {
       proxy: {
         "/api": {
