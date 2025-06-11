@@ -249,7 +249,7 @@ export default function SalesSummaryPage({ outletId }: Props) {
       if (currentSortDirection === "desc")
         return <FaSortDown className="inline ml-1" />;
     }
-    return <FaSort className="inline ml-1 text-gray-400" />;
+    return <FaSort className="inline ml-1 text-black" />;
   };
 
   // Memoized sorted food sales data
@@ -356,7 +356,7 @@ export default function SalesSummaryPage({ outletId }: Props) {
           <h2 className="text-xl font-bold mb-2">Sales by Order Type</h2>
           <div className="overflow-x-auto w-80 rounded border border-green-400">
             <table className="w-full text-sm">
-              <thead className="bg-green-500 text-white">
+              <thead className="bg-green-500 text-black">
                 <tr>
                   <th
                     className="px-4 py-2 text-left cursor-pointer"
@@ -405,18 +405,19 @@ export default function SalesSummaryPage({ outletId }: Props) {
       )}
 
       {/* Food Sales by Category and Order Type Tables */}
+
       {sortedFoodSalesByCategory &&
         Object.keys(sortedFoodSalesByCategory).map(
           (
             categoryName // Use sortedFoodSalesByCategory
           ) => (
             <div key={categoryName} className="mt-6 category-container">
-              <h2 className="category-heading text-xl font-bold mb-2 text-green-400">
+              <h2 className="category-heading text-xl font-bold mb-2 text-white">
                 {categoryName}
               </h2>
               <div className="table-wrapper overflow-x-auto w-full rounded border border-green-400">
                 <table className="food-sales-table min-w-full text-sm border-collapse">
-                  <thead className="bg-gray-500 text-white">
+                  <thead className="bg-gray-400 text-black">
                     <tr>
                       <th
                         rowSpan={2}
