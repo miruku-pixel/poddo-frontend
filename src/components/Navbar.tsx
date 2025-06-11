@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { User } from "../types/User";
 import { Link, useLocation } from "react-router-dom";
-import LOGO from "../assets/LOGO_PODDO.png";
 import { FaChevronRight } from "react-icons/fa"; // or use any icon
 
 // Add userRole to ReportsDropdownProps
@@ -105,10 +104,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
             </p>
             <p className="text-sm text-green-300">{currentTime}</p>
           </div>
-          <div className="flex-1 flex justify-center">
-            <img src={LOGO} alt="Logo" className="h-20 object-contain" />{" "}
-            {/* Used placeholder */}
-          </div>
+
           <div>
             <button
               onClick={onLogout}

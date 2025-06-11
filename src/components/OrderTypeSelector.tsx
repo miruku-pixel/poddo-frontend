@@ -9,13 +9,37 @@ interface OrderTypeSelectorProps {
   orderTypes: OrderType[];
   selectedOrderTypeId: string;
   onChange: (orderTypeId: string) => void;
+  currentUserRole?: string | null; // Added: Current user's role
 }
 
 const OrderTypeSelector: React.FC<OrderTypeSelectorProps> = ({
   orderTypes,
   selectedOrderTypeId,
   onChange,
+  currentUserRole,
 }) => {
+  const isWaiter = currentUserRole === "WAITER";
+
+  const availableOptions = orderTypes.filter((type) => {
+    if (isWaiter) {
+      // If the user is a Waiter, only allow "Dine In" and "Take Away"
+      return type.name === "Dine In" || type.name === "Take Away";
+    }
+    // For other roles or if role is not defined, allow all order types
+    return true;
+  });
+
+  React.useEffect(() => {
+    if (
+      selectedOrderTypeId &&
+      !availableOptions.some((type) => type.id === selectedOrderTypeId)
+    ) {
+      // If the previously selected order type is no longer available for the current role,
+      // reset the selection to an empty value.
+      onChange("");
+    }
+  }, [selectedOrderTypeId, availableOptions, onChange]); // Depend on availableOptions
+
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-white mb-1">
@@ -28,10 +52,10 @@ const OrderTypeSelector: React.FC<OrderTypeSelectorProps> = ({
           onChange={(e) => onChange(e.target.value)}
         >
           <option value="">-- Select Order Type --</option>
-          {orderTypes.length === 0 ? (
+          {availableOptions.length === 0 ? (
             <option disabled>No order types available</option>
           ) : (
-            orderTypes.map((type) => (
+            availableOptions.map((type) => (
               <option key={type.id} value={type.id}>
                 {type.name}
               </option>

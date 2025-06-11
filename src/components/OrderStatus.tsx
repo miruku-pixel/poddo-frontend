@@ -2,6 +2,15 @@ import React, { useState, useCallback } from "react";
 import { Order } from "../types/Order";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { useNavigate } from "react-router-dom";
+import {
+  FaUtensils,
+  FaShoppingBag,
+  FaCircle,
+  FaUsers,
+  FaCrown,
+  FaCreditCard,
+} from "react-icons/fa";
+import { SiShopee, SiGojek, SiGrab } from "react-icons/si";
 
 interface Props {
   orders: Order[];
@@ -13,14 +22,51 @@ const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case "PENDING":
       return "bg-yellow-100 text-yellow-800 border-yellow-300";
-    case "PREPARED":
-      return "bg-blue-100 text-blue-800 border-blue-300";
     case "SERVED":
       return "bg-green-100 text-green-800 border-green-300";
     case "CANCELED":
       return "bg-red-100 text-red-800 border-red-300";
     default:
       return "bg-gray-100 text-gray-800 border-gray-300";
+  }
+};
+
+const getOrderTypeIcon = (orderTypeName: string | undefined | null) => {
+  const iconProps = {
+    className: "w-8 h-8 mr-2", // Tailwind classes for sizing, spacing, and color
+    // You can add more props like `strokeWidth` or `aria-hidden="true"`
+  };
+
+  switch (orderTypeName) {
+    case "Dine In":
+      return (
+        <FaUtensils {...iconProps} className="text-pink-300 w-8 h-8 mr-2" />
+      ); // Icon for eating utensils
+    case "GoFood":
+      return <SiGojek {...iconProps} className="text-green-700 w-8 h-8 mr-2" />; // General car icon for delivery
+    case "GrabFood":
+      return <SiGrab {...iconProps} className="text-green-500 w-8 h-8 mr-2" />; // Bicycle/scooter for delivery, often associated with GrabFood/GoFood
+    case "ShopeeFood":
+      return (
+        <SiShopee {...iconProps} className="text-orange-600 w-8 h-8 mr-2" />
+      ); // Shopping bag for purchases/delivery
+    case "Take Away":
+      return (
+        <FaShoppingBag {...iconProps} className="text-blue-300 w-8 h-8 mr-2" />
+      ); // Coffee cup for grab-and-go
+    case "Staff":
+      return <FaUsers {...iconProps} className="text-red-300 w-8 h-8 mr-2" />; //
+    case "Boss":
+      return (
+        <FaCrown {...iconProps} className="text-yellow-300 w-8 h-8 mr-2" />
+      ); //
+    case "Kasbon":
+      return (
+        <FaCreditCard {...iconProps} className="text-purple-300 w-8 h-8 mr-2" />
+      ); //
+
+    default:
+      return <FaCircle {...iconProps} />; // A generic help/question mark icon for unknown types
   }
 };
 
@@ -100,10 +146,11 @@ const OrderStatus: React.FC<Props> = ({
         const isWaiter = currentUserRole === "WAITER";
         const isAdmin = currentUserRole === "ADMIN";
         const canWaiterUpdate = isWaiter && currentUserId === order.waiterId;
-        const checkStatusUpdate =
-          currentStatus === "PREPARED" || currentStatus === "SERVED";
+        const checkStatusUpdate = currentStatus === "SERVED";
         const canUpdate =
           isCashier || isAdmin || (canWaiterUpdate && checkStatusUpdate);
+        const canEditOrderItems =
+          isCashier || (isWaiter && currentUserId === order.waiterId);
 
         // Determine visibility based on orderType.name
         const showCustomerName =
@@ -135,13 +182,18 @@ const OrderStatus: React.FC<Props> = ({
                   >
                     {isExpanded ? "-" : "+"}
                   </button>
+                  <div>{getOrderTypeIcon(order.orderType?.name)}</div>
                   <div className="flex flex-col">
                     {" "}
                     {/* This new div will stack its children vertically */}
                     <span className="font-medium text-white">
                       {order.orderType?.name?.toLowerCase() === "dine in"
-                        ? `Table ${order.tableNumber} - ${order.waiterName}`
-                        : `${order.orderType?.name} - ${order.waiterName}`}
+                        ? `Table ${order.tableNumber || "N/A"} - ${
+                            order.waiterName || "N/A"
+                          }`
+                        : `${order.orderType?.name || "N/A"} - ${
+                            order.waiterName || "N/A"
+                          }`}
                     </span>
                     <span className="font-medium text-yellow-300 text-sm">
                       {" "}
@@ -171,7 +223,7 @@ const OrderStatus: React.FC<Props> = ({
                     >
                       <button
                         type="button"
-                        className={`inline-flex justify-between w-40 px-3 py-1 text-sm font-medium border rounded ${getStatusBadgeClass(
+                        className={`inline-flex justify-between w-30 px-3 py-1 text-sm font-medium border rounded ${getStatusBadgeClass(
                           currentStatus
                         )}`}
                         onClick={() =>
@@ -199,19 +251,10 @@ const OrderStatus: React.FC<Props> = ({
                         <div className="absolute z-10 mt-1 w-40 rounded-md bg-black shadow-lg border border-green-300">
                           {(() => {
                             let statusOptions: string[] = [];
-                            if (
-                              isWaiter &&
-                              (currentStatus === "PREPARED" ||
-                                currentStatus === "SERVED")
-                            ) {
-                              statusOptions = ["PREPARED", "SERVED"];
+                            if (isWaiter && currentStatus === "SERVED") {
+                              statusOptions = ["PENDING", "SERVED"];
                             } else {
-                              statusOptions = [
-                                "PENDING",
-                                "PREPARED",
-                                "SERVED",
-                                "CANCELED",
-                              ];
+                              statusOptions = ["PENDING", "SERVED", "CANCELED"];
                             }
                             return statusOptions.map((status) => (
                               <button
@@ -250,7 +293,7 @@ const OrderStatus: React.FC<Props> = ({
                   )}
                   {expandedId === order.id && (
                     <div className="flex space-x-2">
-                      {canWaiterUpdate && (
+                      {canEditOrderItems && (
                         <button
                           className="text-sm px-2 py-1 border rounded bg-violet-500 text-white hover:bg-violet-600 transition"
                           onClick={(e) => {
@@ -261,7 +304,7 @@ const OrderStatus: React.FC<Props> = ({
                           ➕ Add Item
                         </button>
                       )}
-                      {canWaiterUpdate && (
+                      {canEditOrderItems && (
                         <button
                           className="text-sm px-2 py-1 border rounded bg-orange-500 text-white hover:bg-orange-600 transition"
                           onClick={(e) => {

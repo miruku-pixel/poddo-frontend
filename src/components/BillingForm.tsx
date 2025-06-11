@@ -57,10 +57,13 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPaymentTypeLocked, setIsPaymentTypeLocked] = useState(false);
 
   const navigate = useNavigate();
 
-  const isManualDiscountAllowed =
+  const isManualDiscountAllowed = order.orderType?.name === "NA";
+
+  const isAmountPaidAllowed =
     order.orderType?.name === "Dine In" ||
     order.orderType?.name === "Take Away";
 
@@ -87,6 +90,41 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
     order.discount,
     order.orderType?.name, // Add order.orderType?.name to dependencies
   ]);
+
+  useEffect(() => {
+    const orderTypeName = order.orderType?.name;
+    switch (orderTypeName) {
+      case "GoFood":
+        setPaymentType("GOFOOD");
+        setIsPaymentTypeLocked(true);
+        break;
+      case "GrabFood":
+        setPaymentType("GRABFOOD");
+        setIsPaymentTypeLocked(true);
+        break;
+      case "ShopeeFood":
+        setPaymentType("SHOPEEFOOD");
+        setIsPaymentTypeLocked(true);
+        break;
+      case "Staff":
+        setPaymentType("FOC");
+        setIsPaymentTypeLocked(true);
+        break;
+      case "Boss":
+        setPaymentType("FOC");
+        setIsPaymentTypeLocked(true);
+        break;
+      case "Kasbon":
+        setPaymentType("KASBON");
+        setIsPaymentTypeLocked(true);
+        break;
+      default:
+        // For Dine In, Take Away, or other types, default to CASH and unlock
+        setPaymentType("CASH");
+        setIsPaymentTypeLocked(false);
+        break;
+    }
+  }, [order.orderType?.name]); // Re-run this effect when order type changes
 
   // Recalculate total based on the current manualDiscount state
   const total = subtotal + tax - Number(manualDiscount);
@@ -136,10 +174,13 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
   const showCustomerName =
     order.orderType?.name === "Take Away" ||
     order.orderType?.name === "GrabFood" ||
-    order.orderType?.name === "GoFood";
+    order.orderType?.name === "GoFood" ||
+    order.orderType?.name === "ShopeeFood"; // Added ShopeeFood
 
   const showOnlineCode =
-    order.orderType?.name === "GrabFood" || order.orderType?.name === "GoFood";
+    order.orderType?.name === "GrabFood" ||
+    order.orderType?.name === "GoFood" ||
+    order.orderType?.name === "ShopeeFood"; // Added ShopeeFood
 
   // Determine the label for the discount input
   const discountLabel = isManualDiscountAllowed
@@ -303,8 +344,12 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
                     e.target.value === "" ? "" : Number(e.target.value)
                   )
                 }
-                className="border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black"
-                required
+                readOnly={!isAmountPaidAllowed}
+                className={`border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black ${
+                  !isAmountPaidAllowed
+                    ? "opacity-60 cursor-not-allowed bg-gray-200"
+                    : ""
+                }`}
               />
             </div>
 
@@ -324,14 +369,21 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
               <select
                 value={paymentType}
                 onChange={(e) => setPaymentType(e.target.value)}
-                className="w-full border border-green-400 px-3 py-2 rounded bg-gray-700 text-green-100"
+                disabled={isPaymentTypeLocked} // Disable based on new state
+                className={`w-full border border-green-400 px-3 py-2 rounded bg-gray-700 text-green-100 ${
+                  isPaymentTypeLocked
+                    ? "opacity-60 cursor-not-allowed bg-gray-800"
+                    : ""
+                }`}
               >
                 <option value="CASH">Cash</option>
-                <option value="CARD">Card</option>
                 <option value="QRIS">QRIS</option>
-                <option value="DEBIT">Debit</option>
-                <option value="E_WALLET">E-Wallet</option>
                 <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="GOFOOD">GoFood</option>
+                <option value="GRABFOOD">GrabFood</option>
+                <option value="SHOPEEFOOD">ShopeeFood</option>
+                <option value="KASBON">Kasbon</option>
+                <option value="FOC">FOC</option>
               </select>
             </div>
 

@@ -8,6 +8,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { User } from "../types/User";
 import { DiningTable } from "../types/DiningTable";
 import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
+import LOGO from "../assets/LOGO_PODDO.png";
 
 // Simplified InputField component
 function InputField({
@@ -247,12 +248,12 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       return;
     }
 
-    if (currentOrderTypeName !== "Dine In" && !customerName) {
+    if (currentOrderTypeName == "Take Away" && !customerName) {
       alert("Customer Name is required for this order type.");
       console.warn("Submission blocked: Customer Name missing.");
       return;
     }
-
+    /*
     if (
       (currentOrderTypeName === "GrabFood" ||
         currentOrderTypeName === "GoFood") &&
@@ -262,7 +263,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       console.warn("Submission blocked: Online Code missing.");
       return;
     }
-
+*/
     const items = Object.entries(selectedItems)
       .map(([foodId, itemData]) => {
         const menuItem = menu.find((m) => m.id === foodId);
@@ -410,45 +411,65 @@ export default function OrderEntry({ user }: OrderEntryProps) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       {orderSubmitted && <SuccessMessage orderNumber={submittedOrderNumber} />}
-      <h1 className="text-2xl text-white font-bold">Create Order</h1>
 
-      {/* Order Type Selector */}
-      <OrderTypeSelector
-        orderTypes={orderTypes}
-        selectedOrderTypeId={selectedOrderTypeId}
-        onChange={handleOrderTypeChange}
-      />
+      {/* Header Section: H1, Selectors, Inputs, and Logo */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        {" "}
+        {/* Changed items-start to items-center */}
+        {/* Left Column: H1 and form elements */}
+        <div className="flex-1 min-w-[280px] md:min-w-[350px] space-y-4">
+          <h1 className="text-2xl text-white font-bold">Create Order</h1>
+          {/* Order Type Selector */}
+          <OrderTypeSelector
+            orderTypes={orderTypes}
+            selectedOrderTypeId={selectedOrderTypeId}
+            onChange={handleOrderTypeChange}
+            currentUserRole={user?.role || null}
+          />
 
-      {selectedOrderType?.name === "Dine In" && (
-        <DiningTableSelector
-          tables={tables}
-          selectedTableId={selectedTableId}
-          setSelectedTableId={setSelectedTableId}
-        />
-      )}
+          {selectedOrderType?.name === "Dine In" && (
+            <DiningTableSelector
+              tables={tables}
+              selectedTableId={selectedTableId}
+              setSelectedTableId={setSelectedTableId}
+            />
+          )}
 
-      {/* Conditional Rendering for Customer Name */}
-      {(selectedOrderType?.name === "Take Away" ||
-        selectedOrderType?.name === "GrabFood" ||
-        selectedOrderType?.name === "GoFood") && (
-        <InputField
-          label="Customer Name"
-          value={customerName}
-          onChange={setCustomerName}
-          type="text"
-        />
-      )}
+          {/* Conditional Rendering for Customer Name */}
+          {(selectedOrderType?.name === "Take Away" ||
+            selectedOrderType?.name === "GrabFood" ||
+            selectedOrderType?.name === "GoFood") && (
+            <InputField
+              label="Customer Name"
+              value={customerName}
+              onChange={setCustomerName}
+              type="text"
+            />
+          )}
 
-      {/* Conditional Rendering for Online Code */}
-      {(selectedOrderType?.name === "GrabFood" ||
-        selectedOrderType?.name === "GoFood") && (
-        <InputField
-          label="Online Code"
-          value={onlineCode}
-          onChange={setOnlineCode}
-          type="text"
-        />
-      )}
+          {/* Conditional Rendering for Online Code */}
+          {(selectedOrderType?.name === "GrabFood" ||
+            selectedOrderType?.name === "GoFood") && (
+            <InputField
+              label="Online Code"
+              value={onlineCode}
+              onChange={setOnlineCode}
+              type="text"
+            />
+          )}
+        </div>
+        {/* Right Column: Logo */}
+        <div className="rounded-xl w-full sm:w-auto flex justify-center items-center flex-grow-0 flex-shrink-0 self-center">
+          <img
+            src={LOGO}
+            alt="Restaurant Logo"
+            className="max-h-[150px] max-w-[200px] w-auto h-auto object-contain"
+          />
+        </div>
+      </div>
+
+      {/* Separator Line */}
+      <hr className="border-t border-gray-600" />
 
       <MenuItemList
         menu={getDisplayMenu()}

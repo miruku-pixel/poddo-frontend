@@ -21,6 +21,7 @@ export default function MenuItemList({
   onChangeOptionQuantity,
 }: MenuItemListProps) {
   const [openOptionsId, setOpenOptionsId] = useState<string | null>(null);
+  const [optionError, setOptionError] = useState<string | null>(null);
 
   const currentItem = menu.find((item) => item.id === openOptionsId);
 
@@ -165,17 +166,41 @@ export default function MenuItemList({
             </div>
             <button
               className="absolute top-2 right-2 text-green-400 hover:text-white text-4xl p-2"
-              onClick={() => setOpenOptionsId(null)}
+              onClick={() => {
+                if (openOptionsId) {
+                  onToggleSelect(openOptionsId); // Deselect the food
+                }
+                setOpenOptionsId(null); // Close the modal
+                setOptionError(null); // Clear any validation errors
+              }}
               aria-label="Close"
             >
               ×
             </button>
             <button
               className="cursor-pointer mt-6 w-full px-4 py-2 rounded bg-green-300 text-black font-bold hover:bg-green-400"
-              onClick={() => setOpenOptionsId(null)}
+              onClick={() => {
+                const options = currentItem.options as UIFoodOption[];
+                const hasOptions = options.length > 0;
+                const hasSelectedOption = options.some((opt) => opt.selected);
+
+                if (hasOptions && !hasSelectedOption) {
+                  setOptionError("Please select at least one option.");
+                  return;
+                }
+
+                setOpenOptionsId(null);
+                setOptionError(null);
+                setOpenOptionsId(null);
+              }}
             >
-              Done
+              Submit
             </button>
+            {optionError && (
+              <p className="text-red-400 text-sm mt-2 text-center">
+                {optionError}
+              </p>
+            )}
           </div>
         </div>
       )}

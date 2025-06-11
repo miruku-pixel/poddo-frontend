@@ -24,6 +24,7 @@ export default function OrderSummary({
 
   // Determine if the user is a Waiter
   const isWaiter = currentUserRole === "WAITER";
+  const isCashier = currentUserRole === "CASHIER";
 
   const wrappedSubmitOrder = async () => {
     setIsSubmitting(true);
@@ -106,19 +107,19 @@ export default function OrderSummary({
         <button
           onClick={wrappedSubmitOrder}
           // Disable the button if submitting OR if the user is NOT a waiter
-          disabled={isSubmitting || !isWaiter}
+          disabled={isSubmitting || (!isWaiter && !isCashier)}
           aria-label={submitLabel}
           className={`w-full bg-[linear-gradient(159deg,_rgba(62,180,137,1)_0%,_rgba(144,238,144,1)_100%)] text-white font-bold py-2 rounded hover:text-green-800 transition ${
-            isSubmitting || !isWaiter
+            isSubmitting || (!isWaiter && !isCashier)
               ? "opacity-50 cursor-not-allowed"
               : "cursor-pointer"
           }`}
         >
           {isSubmitting ? "Submitting..." : "Submit Order"}
         </button>
-        {!isWaiter && (
+        {!isWaiter && !isCashier && (
           <p className="text-red-400 text-sm text-center mt-2">
-            Only Waiters can submit orders.
+            Only Waiters and Cashiers can submit orders.
           </p>
         )}
       </div>
