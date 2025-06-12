@@ -4,6 +4,10 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { fetchWithAuth } from "../utils/fetchWithAuth"; // Assuming this is correctly configured
 import { UserRole } from "../types/User"; // Adjust the import path based on your project structure
 
+// Import html-to-image functions
+import * as htmlToImage from "html-to-image";
+// Or import { toPng } from 'html-to-image'; if you only need PNG
+
 type Props = {
   outletId: string;
   cashierName?: string;
@@ -125,8 +129,10 @@ export default function DailyRevenueReport({
   const [loadingReport, setLoadingReport] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [loadingUnlock, setLoadingUnlock] = useState(false); // Loading state for unlock
+  const [loadingCapture, setLoadingCapture] = useState(false); // New loading state for capture
   const [error, setError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null); // Ref to the div we want to capture
 
   const [paymentRemarks, setPaymentRemarks] = useState<{
     [key: string]: string;
@@ -294,6 +300,44 @@ export default function DailyRevenueReport({
     }
   };
 
+  // --- Refactored function to capture the screen using html-to-image ---
+  const handleCaptureScreen = useCallback(async () => {
+    if (reportRef.current) {
+      setLoadingCapture(true);
+      setError(null);
+      setSubmitMessage(null); // Clear previous messages
+      try {
+        // html-to-image provides specific functions for different formats
+        // .toPng() is commonly used
+        const dataUrl = await htmlToImage.toPng(reportRef.current, {
+          // You can add options here. html-to-image is generally good with defaults.
+          // For higher quality, consider:
+          // quality: 0.95, // Adjust quality for JPEG. PNG is lossless.
+          // pixelRatio: 2, // Equivalent to html2canvas scale for higher resolution
+          // cacheBust: true, // Prevents caching of images
+          // skipFonts: false, // Ensure fonts are included (default is false)
+        });
+
+        // Create a temporary link element to download the image
+        const link = document.createElement("a");
+        link.download = `DailyRevenueReport_${reportDate}_${outletId}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setSubmitMessage("Report captured successfully!");
+      } catch (err) {
+        console.error("Failed to capture screen:", err);
+        setError("Failed to capture report. Please try again.");
+      } finally {
+        setLoadingCapture(false);
+      }
+    } else {
+      setError("Report content not found for capture.");
+    }
+  }, [reportDate, outletId]);
+
   const calculatedRemainingBalance = useMemo(() => {
     if (!dailyReportData) return 0;
 
@@ -347,7 +391,11 @@ export default function DailyRevenueReport({
 
   return (
     <div className="min-h-screen text-white p-4 md:p-6 flex flex-col items-center">
-      <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-5 space-y-5 border border-green-700">
+      {/* Assign the ref to the div you want to capture */}
+      <div
+        ref={reportRef}
+        className="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-5 space-y-5 border border-green-700"
+      >
         {/* Header Section */}
         <div className="text-center mb-4">
           <h1 className="text-xl font-bold text-green-400">
@@ -530,6 +578,23 @@ export default function DailyRevenueReport({
           </p>
         )}
       </div>
+
+      {/* Capture Screen Button */}
+      {dailyReportData && (
+        <button
+          onClick={handleCaptureScreen}
+          disabled={loadingCapture}
+          className={`mt-6 w-full max-w-md px-4 py-2 rounded font-semibold text-lg border-2 border-white
+            ${
+              loadingCapture
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            }
+           `}
+        >
+          {loadingCapture ? "Saving..." : "Save Report as Image"}
+        </button>
+      )}
     </div>
   );
 }
