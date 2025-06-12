@@ -1,6 +1,7 @@
 import { Order } from "../types/Order";
 import { Billing } from "../types/Billing";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface ReceiptProps {
   order: Order; // Keep order for non-financial details like items, table, waiter
@@ -16,6 +17,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
   const orderTypeName = order.orderType?.name;
 
   const navigate = useNavigate();
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Conditional visibility flags
   const isDineIn = orderTypeName === "Dine In";
@@ -26,6 +28,42 @@ export default function Receipt({ order, billing }: ReceiptProps) {
   const showOnlineCode = isOnlineOrder;
   const showCustomerName = !isDineIn && order.customerName; // Show if NOT Dine In AND customerName exists
   const showTableNumber = isDineIn && order.tableNumber; // Show if Dine In AND tableNumber exists
+
+  const handlePrintFullReceipt = async () => {
+    setIsPrinting(true); // Set loading state to true
+    try {
+      const response = await fetch("http://localhost:3001/print-receipt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ order, billing }), // Use the component's order and billing props
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Full receipt print job sent successfully!");
+        console.log("Server response:", data);
+      } else {
+        alert(
+          `Failed to send full print job: ${
+            data.message || response.statusText
+          }`
+        );
+        console.error("Server error response:", data);
+      }
+    } catch (error) {
+      console.error(
+        "Error connecting to printer server for full receipt:",
+        error
+      );
+      alert(
+        "Could not connect to the local printer server. Make sure it's running!"
+      );
+    } finally {
+      setIsPrinting(false); // Reset loading state
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-transparent flex justify-center items-center p-4">
@@ -142,6 +180,17 @@ export default function Receipt({ order, billing }: ReceiptProps) {
         <div className="mt-6 text-center font-bold text-green-300 text-xl">
           Thank you!
         </div>
+        <button
+          onClick={handlePrintFullReceipt}
+          disabled={isPrinting} // Disable button while printing
+          className={`w-full py-2 rounded mt-4 text-white font-bold ${
+            isPrinting
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
+        >
+          {isPrinting ? "Printing..." : "Print Receipt"}
+        </button>
       </div>
     </div>
   );

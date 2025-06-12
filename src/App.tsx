@@ -15,6 +15,7 @@ import OrderEditPage from "./pages/OrderEditPage";
 import AddItemToOrderPage from "./pages/AddItemToOrderPage";
 import SalesReportPage from "./pages/SalesSummaryPage";
 import SalesDetailPage from "./pages/SalesDetailPage";
+import DailyRevenueReport from "./pages/DailyRevenueReport";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -106,6 +107,18 @@ function App() {
           element={
             <Layout user={user} onLogout={handleLogout}>
               <SalesDetailPage outletId={user?.outletId ?? ""} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/dailyrevenue"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <DailyRevenueReport
+                outletId={user?.outletId ?? ""}
+                cashierName={user?.username ?? "N/A"}
+                userRole={user?.role ?? "N/A"}
+              />
             </Layout>
           }
         />
