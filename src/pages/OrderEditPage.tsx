@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form"; // Import FormProvider
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { RawOrder, RawOrderItem, RawOption } from "../types/RawOrder";
 import { Order } from "../types/Order";
@@ -78,6 +78,7 @@ function mapOrderResponse(raw: RawOrder): Order {
 // --- Main Component: OrderEditPage ---
 export default function OrderEditPage() {
   const { orderId } = useParams(); // Get orderId from URL parameters
+  const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null); // State to hold the fetched order data
   const [loading, setLoading] = useState(true); // Loading state for initial data fetch
   const [error, setError] = useState<string | null>(null); // Error state for initial data fetch
@@ -226,7 +227,7 @@ export default function OrderEditPage() {
       }
 
       // Redirect to status page instead of alert
-      window.location.href = "/status";
+      navigate("/status");
     } catch (err: unknown) {
       // Catch as unknown for type safety
       console.error("Error submitting form:", err);

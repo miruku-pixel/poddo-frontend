@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import MenuItemList from "../components/MenuItemList";
 import { Order } from "../types/Order";
@@ -51,6 +51,7 @@ function mapOrderResponse(raw: RawOrder): Order {
 
 export default function AddItemToOrderPage({ user }: AddItemProps) {
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -305,8 +306,9 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         return; // Don't redirect on failure
       }
 
+      navigate("/status");
+
       // On successful update, navigate to status page
-      window.location.href = "/status";
     } catch (error) {
       // Catch validation errors from buildAddItemsPayload or fetch errors
       console.error("Error updating order:", error);
