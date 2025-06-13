@@ -291,49 +291,47 @@ const OrderStatus: React.FC<Props> = ({
                       {currentStatus}
                     </span>
                   )}
-                  {expandedId === order.id && (
-                    <div className="flex space-x-2">
-                      {canEditOrderItems && (
-                        <button
-                          className="text-sm px-2 py-1 border rounded bg-violet-500 text-white hover:bg-violet-600 transition"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/additem/${order.id}`);
-                          }}
-                        >
-                          ➕ Add Item
-                        </button>
-                      )}
-                      {canEditOrderItems && (
-                        <button
-                          className="text-sm px-2 py-1 border rounded bg-orange-500 text-white hover:bg-orange-600 transition"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/editorder/${order.id}`);
-                          }}
-                        >
-                          Edit Item
-                        </button>
-                      )}
-                      {currentUserRole === "CASHIER" &&
-                        currentStatus === "SERVED" && (
-                          <button
-                            className="text-sm px-2 py-1 border rounded bg-pink-500 text-white hover:bg-pink-600 transition"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/billing/${order.id}`);
-                            }}
-                          >
-                            💳 Billing
-                          </button>
-                        )}
-                    </div>
-                  )}
                 </div>
               </div>
 
               {isExpanded && (
                 <div className="border-t border-green-400 px-4 py-3">
+                  <div className="flex space-x-2 mb-4 border-b border-green-400 pb-3">
+                    {canEditOrderItems && (
+                      <button
+                        className="text-sm px-2 py-1 border rounded bg-violet-500 text-white hover:bg-violet-600 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/additem/${order.id}`);
+                        }}
+                      >
+                        ➕ Add Item
+                      </button>
+                    )}
+                    {canEditOrderItems && (
+                      <button
+                        className="text-sm px-2 py-1 border rounded bg-orange-500 text-white hover:bg-orange-600 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/editorder/${order.id}`);
+                        }}
+                      >
+                        Edit Item
+                      </button>
+                    )}
+                    {currentUserRole === "CASHIER" &&
+                      currentStatus === "SERVED" && (
+                        <button
+                          className="text-sm px-2 py-1 border rounded bg-pink-500 text-white hover:bg-pink-600 transition"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/billing/${order.id}`);
+                          }}
+                        >
+                          💳 Billing
+                        </button>
+                      )}
+                  </div>
                   <div className="space-y-2">
                     {/* Group items by foodCategoryName before rendering */}
                     {(() => {

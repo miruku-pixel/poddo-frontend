@@ -25,6 +25,7 @@ interface CashReconciliation {
   cashDeposit: number;
   remainingBalance: number;
   isLocked: boolean; // Add isLocked to cashReconciliation interface
+  submittedByCashierName?: string;
 }
 
 interface DailyRevenueSummary {
@@ -139,6 +140,7 @@ export default function DailyRevenueReport({
   }>({});
 
   const [isLocked, setIsLocked] = useState(false); // State to track lock status
+  const [displayedCashierName, setDisplayedCashierName] = useState(cashierName);
 
   const handleRemarkChange = useCallback(
     (paymentType: string, value: string) => {
@@ -163,6 +165,7 @@ export default function DailyRevenueReport({
     setCashDepositInput("");
     setPaymentRemarks({}); // Clear remarks before fetching to ensure fresh data
     setIsLocked(false); // Reset lock status before fetching
+    setDisplayedCashierName(cashierName); // Reset displayed name to current user's name
 
     try {
       const params = new URLSearchParams({
@@ -193,15 +196,28 @@ export default function DailyRevenueReport({
       }
 
       // Set the lock status from the API response
-      setIsLocked(data.summary.cashReconciliation.isLocked || false);
+      const isReportLocked = data.summary.cashReconciliation.isLocked || false;
+      setIsLocked(isReportLocked);
+
+      // Correctly set displayedCashierName based on fetched data or current user
+      if (
+        isReportLocked &&
+        data.summary.cashReconciliation.submittedByCashierName
+      ) {
+        setDisplayedCashierName(
+          data.summary.cashReconciliation.submittedByCashierName
+        );
+      } else {
+        // If not locked or no submitted name, default to the currently logged-in cashier's name
+        setDisplayedCashierName("-");
+      }
     } catch (error) {
-      // Explicitly type error for better error handling
       console.error("Failed to fetch daily report:", error);
       setError("Failed to fetch daily report. Please try again.");
     } finally {
       setLoadingReport(false);
     }
-  }, [outletId, reportDate]);
+  }, [outletId, reportDate, cashierName]); // Added cashierName to dependencies for full reactivity
 
   const submitCashReconciliation = async () => {
     // Prevent submission if already locked
@@ -232,6 +248,7 @@ export default function DailyRevenueReport({
             date: reportDate,
             cashDeposit: Number(cashDepositInput),
             remarks: paymentRemarks,
+            submittedByCashierName: cashierName,
           }),
         }
       );
@@ -307,15 +324,9 @@ export default function DailyRevenueReport({
       setError(null);
       setSubmitMessage(null); // Clear previous messages
       try {
-        // html-to-image provides specific functions for different formats
-        // .toPng() is commonly used
         const dataUrl = await htmlToImage.toPng(reportRef.current, {
-          // You can add options here. html-to-image is generally good with defaults.
-          // For higher quality, consider:
-          // quality: 0.95, // Adjust quality for JPEG. PNG is lossless.
-          // pixelRatio: 2, // Equivalent to html2canvas scale for higher resolution
-          // cacheBust: true, // Prevents caching of images
-          // skipFonts: false, // Ensure fonts are included (default is false)
+          pixelRatio: 2, // For higher resolution image
+          cacheBust: true, // Prevents caching of images
         });
 
         // Create a temporary link element to download the image
@@ -370,7 +381,7 @@ export default function DailyRevenueReport({
   );
 
   const debitPaymentTypes = useMemo(
-    () => ["QRIS", "TRANSFER", "GOFOOD", "SHOPEEFOOD", "KASBON"],
+    () => ["QRIS", "TRANSFER", "GOFOOD", "GRABFOOD", "SHOPEEFOOD", "KASBON"],
     []
   );
 
@@ -387,7 +398,9 @@ export default function DailyRevenueReport({
     isLocked || loadingReport || loadingSubmit;
   // Determine if submit button should be disabled
   const shouldSubmitBeDisabled =
-    isLocked || loadingSubmit || cashDepositInput === "";
+    isLocked ||
+    loadingSubmit ||
+    (typeof cashDepositInput !== "number" && cashDepositInput === "");
 
   return (
     <div className="min-h-screen text-white p-4 md:p-6 flex flex-col items-center">
@@ -418,7 +431,9 @@ export default function DailyRevenueReport({
           </p>
           <p>
             <span className="text-gray-300">Cashier:</span>{" "}
-            <span className="font-semibold text-white">{cashierName}</span>
+            <span className="font-semibold text-white">
+              {displayedCashierName}
+            </span>
           </p>
         </div>
 
@@ -523,7 +538,9 @@ export default function DailyRevenueReport({
                 label="Transfer hari ini"
                 type="number"
                 value={cashDepositInput}
-                onChange={(val) => setCashDepositInput(Number(val) || "")}
+                onChange={(val) =>
+                  setCashDepositInput(val === "" ? "" : Number(val))
+                }
                 placeholder="Nilai Transfer"
                 step="0.01"
                 readOnly={shouldGeneralInputsBeReadOnly}
