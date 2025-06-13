@@ -56,6 +56,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
   const [error, setError] = useState<string | null>(null);
   const [menu, setMenu] = useState<FoodItem[]>([]);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
 
   const [selectedItems, setSelectedItems] = useState<{
     [id: string]: {
@@ -101,7 +102,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         alert("Failed to load data.");
       }
     },
-    [setMenu]
+    []
   );
 
   useEffect(() => {
@@ -113,9 +114,14 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
 
       try {
         const response = await fetchWithAuth(`/api/fetchOrder/${orderId}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch order.");
+        }
         const data = await response.json();
         setOrder(mapOrderResponse(data));
       } catch (err) {
+        // Catch as any for simpler error handling, or unknown and check instanceof Error
         setError("Failed to fetch order. Please try again.");
         console.error(err);
       } finally {
@@ -137,8 +143,9 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
     fetchWithAuth("/api/orderType")
       .then((res) => res.json())
       .then((types: OrderTypes[]) => {
-        console.log("Fetched Order Types:", types); // ✅ Add this line
-      });
+        console.log("Fetched Order Types (not directly used here):", types);
+      })
+      .catch((error) => console.error("Error fetching order types:", error));
   }, []);
 
   useEffect(() => {
@@ -147,8 +154,12 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
     }
   }, [user?.outletId, order?.orderType?.id, fetchMenu]);
 
-  if (loading) return <div className="text-white text-center">Loading...</div>;
-  if (error) return <div className="text-red-400 text-center">{error}</div>;
+  if (loading)
+    return (
+      <div className="text-white text-center">Loading order details...</div>
+    );
+  if (error)
+    return <div className="text-red-400 text-center">Error: {error}</div>;
   if (!order)
     return <div className="text-white text-center">Order not found.</div>;
 
@@ -265,14 +276,16 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
   const handleUpdateOrder = async () => {
     if (!orderId) return;
 
-    const payload = buildAddItemsPayload();
-
-    if (payload.items.length === 0) {
-      alert("No items selected.");
-      return;
-    }
+    setIsUpdatingOrder(true); // Start loading animation
 
     try {
+      const payload = buildAddItemsPayload(); // This can now throw errors if validation fails
+
+      if (payload.items.length === 0) {
+        alert("No new items selected to add.");
+        return;
+      }
+
       const response = await fetchWithAuth(`/api/orders/${orderId}/add-item`, {
         method: "POST",
         headers: {
@@ -284,33 +297,23 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Failed to update order:", errorData);
-        alert("Failed to update order: " + errorData.error);
-        return;
+        // Using alert here, consider a custom modal for better UX
+        alert(
+          "Failed to add items to order: " +
+            (errorData.error || errorData.message || "Unknown error")
+        );
+        return; // Don't redirect on failure
       }
 
-      const resetMenu = menu.map((item) => ({
-        ...item,
-        selected: false,
-        quantity: 1,
-        options: item.options.map((opt) => ({
-          ...opt,
-          selected: false,
-          quantity: 1,
-        })),
-      }));
-
-      setMenu(resetMenu);
-      setSelectedItems({});
-
-      const updatedOrder = await fetchWithAuth(`/api/fetchOrder/${orderId}`);
-      const data = await updatedOrder.json();
-      setOrder(mapOrderResponse(data));
-
-      setOrderSubmitted(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // On successful update, navigate to status page
+      window.location.href = "/status";
     } catch (error) {
+      // Catch validation errors from buildAddItemsPayload or fetch errors
       console.error("Error updating order:", error);
-      alert("An unexpected error occurred.");
+      // Display the specific error message from validation or fetch
+      alert("An unexpected error occurred while updating the order.");
+    } finally {
+      setIsUpdatingOrder(false); // Stop loading animation
     }
   };
 
@@ -383,20 +386,48 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         onToggleOption={handleToggleOption}
         onChangeOptionQuantity={handleChangeOptionQuantity}
       />
-      <button
-        type="button"
-        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded w-full md:w-auto"
-        onClick={() => window.history.back()}
-        disabled={loading}
-      >
-        Cancel
-      </button>
-      <button
-        onClick={handleUpdateOrder}
-        className="mt-6 ml-3  bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded w-full md:w-auto"
-      >
-        Update Order
-      </button>
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6 pt-4 border-t border-green-400">
+        <button
+          type="button"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded w-full sm:w-auto transition duration-200"
+          onClick={() => window.history.back()}
+          disabled={loading || isUpdatingOrder} // Disable if initial loading or submitting
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleUpdateOrder}
+          disabled={isUpdatingOrder} // Disable if currently updating
+          className={`bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded w-full sm:w-auto transition duration-200 flex items-center justify-center ${
+            isUpdatingOrder ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {isUpdatingOrder ? (
+            <svg
+              className="animate-spin h-5 w-5 text-black" // Spinner for dark text
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            "Update Order"
+          )}
+        </button>
+      </div>
     </div>
   );
 }

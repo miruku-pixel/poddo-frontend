@@ -2,6 +2,7 @@
 
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { OrderForm } from "../pages/OrderEditPage";
+import { useState } from "react"; // Import useState for the loading indicator
 
 interface OrderItemFormFieldsProps {
   itemIdx: number;
@@ -29,16 +30,31 @@ export default function OrderItemFormFields({
   const currentItemStatus = watchItems?.status;
   const watchOptions = watchItems?.options;
 
-  const handleCancelItem = () => {
-    const newStatus = currentItemStatus === "CANCELED" ? "ACTIVE" : "CANCELED";
-    setValue(`items.${itemIdx}.status`, newStatus);
-    setValue(
-      `items.${itemIdx}.options`,
-      (watchOptions || []).map((opt) => ({
-        ...opt,
-        status: newStatus,
-      }))
-    );
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false); // State to manage loading indicator
+
+  const handleCancelItem = async () => {
+    // Make function async
+    setIsUpdatingStatus(true); // Set loading to true when action starts
+    try {
+      const newStatus =
+        currentItemStatus === "CANCELED" ? "ACTIVE" : "CANCELED";
+      setValue(`items.${itemIdx}.status`, newStatus);
+      setValue(
+        `items.${itemIdx}.options`,
+        (watchOptions || []).map((opt) => ({
+          ...opt,
+          status: newStatus,
+        }))
+      );
+      // Simulate an asynchronous operation (e.g., API call)
+      // If this button triggers a direct API update, replace this with your actual fetch logic
+      await new Promise((resolve) => setTimeout(resolve, 300)); // Small delay for visual effect
+    } catch (error) {
+      console.error("Error toggling item status:", error);
+      // Handle error (e.g., display an error message to the user)
+    } finally {
+      setIsUpdatingStatus(false); // Set loading to false when action finishes
+    }
   };
 
   const isCanceled = currentItemStatus === "CANCELED";
@@ -186,17 +202,48 @@ export default function OrderItemFormFields({
         })}
       </div>
 
-      <div className="text-center flex flex-wrap gap-2 pt-2 border-t border-green-400 mt-4">
+      <div className="flex justify-end pt-2 border-t border-green-400 mt-4">
+        {" "}
+        {/* Aligns button to the right */}
         <button
           type="button"
           onClick={handleCancelItem}
-          className={`text-sm ${
+          disabled={isUpdatingStatus} // Disable button when updating
+          className={`w-full sm:w-auto text-sm flex items-center justify-center ${
+            // Added w-full sm:w-auto and flex utility classes
             isCanceled
               ? "bg-green-600 hover:bg-green-500"
               : "bg-red-600 hover:bg-red-500"
-          } text-white px-4 py-2 rounded`}
+          } text-white px-4 py-2 rounded transition ${
+            isUpdatingStatus ? "opacity-50 cursor-not-allowed" : "" // Add opacity and not-allowed cursor
+          }`}
         >
-          {isCanceled ? "Undo Canceled" : "Mark Canceled"}
+          {isUpdatingStatus ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white" // Removed -ml-1 mr-3 for centered spinner
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : isCanceled ? (
+            "Undo Canceled"
+          ) : (
+            "Mark Canceled"
+          )}
         </button>
       </div>
     </div>
