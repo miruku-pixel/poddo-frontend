@@ -490,7 +490,7 @@ export default function DailyRevenueReport({
                       {formatCurrency(getPaymentTypeRevenue(type))}
                     </span>
                   </div>
-                  {(type === "QRIS" || type === "TRANSFER") && (
+                  {(type === "QRIS" || type === "BANK_TRANSFER") && (
                     <InputField
                       label=""
                       value={paymentRemarks[type] || ""}
