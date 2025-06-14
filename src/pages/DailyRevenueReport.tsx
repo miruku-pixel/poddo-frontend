@@ -381,7 +381,14 @@ export default function DailyRevenueReport({
   );
 
   const debitPaymentTypes = useMemo(
-    () => ["QRIS", "TRANSFER", "GOFOOD", "GRABFOOD", "SHOPEEFOOD", "KASBON"],
+    () => [
+      "QRIS",
+      "BANK_TRANSFER",
+      "GOFOOD",
+      "GRABFOOD",
+      "SHOPEEFOOD",
+      "KASBON",
+    ],
     []
   );
 
