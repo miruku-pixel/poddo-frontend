@@ -608,15 +608,34 @@ export default function DailyRevenueReport({
         <button
           onClick={handleCaptureScreen}
           disabled={loadingCapture}
-          className={`mt-6 w-full max-w-md px-4 py-2 rounded font-semibold text-lg border-2 border-white
-            ${
-              loadingCapture
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
-            }
-           `}
+          className={`bg-blue-500 mt-3 hover:bg-blue-600 px-4 py-2 rounded flex items-center justify-center w-full sm:w-auto transition duration-200 ${
+            loadingCapture ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          {loadingCapture ? "Saving..." : "Save Report as Image"}
+          {loadingCapture ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            "Export to Image"
+          )}
         </button>
       )}
     </div>
