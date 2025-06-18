@@ -17,6 +17,7 @@
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.513.0",
     "postcss": "^8.5.3",
+    "qz-tray": "^2.2.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",

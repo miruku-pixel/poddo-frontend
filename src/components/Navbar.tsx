@@ -85,6 +85,70 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
   );
 }
 
+export function StockDropdown({ userRole }: ReportsDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  if (userRole === "WAITER") {
+    return null;
+  }
+
+  const isReportsButtonActive = isOpen;
+
+  return (
+    <div className="relative inline-block text-left">
+      {/* Trigger Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${
+          isReportsButtonActive
+            ? "border-2 border-green-400 bg-gray-700 font-bold shadow-lg" // Bolder border when active
+            : "border border-green-400 bg-gray-800 hover:bg-gray-700" // Default/hover state
+        }`}
+      >
+        Stock
+        <FaChevronRight className="transition-transform duration-300 group-hover:translate-x-1" />
+      </button>
+
+      {/* Dropdown Menu */}
+      <div
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        className={`absolute z-10 mt-2 w-56 origin-top-left rounded-md shadow-lg bg-gray-900 border border-green-400 transition-all duration-300 ${
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+      >
+        {/* Report 1 */}
+        <Link
+          to="/stocktransaction"
+          className={`block px-4 py-2 rounded-lg transition m-2 ${
+            // Kept m-2 for internal spacing of links
+            location.pathname === "/stocktransaction"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+          }`}
+        >
+          Daily Stock Transaction
+        </Link>
+
+        <Link
+          to="/stockreport"
+          className={`block px-4 py-2 rounded-lg transition m-2 ${
+            // Kept m-2 for internal spacing of links
+            location.pathname === "/stockreport"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+          }`}
+        >
+          Monthly Stock Report
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 type NavbarProps = {
   // Renamed from 'Props' to 'NavbarProps' for clarity
   user: User;
@@ -154,6 +218,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         </Link>
         {/* Reports Dropdown Link: Removed outer p-[2px] wrapper. ReportsDropdown component handles its own styling. */}
         <ReportsDropdown userRole={user.role} />
+        <StockDropdown userRole={user.role} />
       </div>
     </>
   );

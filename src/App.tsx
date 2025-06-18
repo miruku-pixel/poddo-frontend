@@ -16,6 +16,8 @@ import AddItemToOrderPage from "./pages/AddItemToOrderPage";
 import SalesReportPage from "./pages/SalesSummaryPage";
 import SalesDetailPage from "./pages/SalesDetailPage";
 import DailyRevenueReport from "./pages/DailyRevenueReport";
+import InventoryTransaction from "./pages/InventoryTransaction";
+import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -118,6 +120,28 @@ function App() {
                 outletId={user?.outletId ?? ""}
                 cashierName={user?.username ?? "N/A"}
                 userRole={user?.role ?? "N/A"}
+              />
+            </Layout>
+          }
+        />
+        <Route
+          path="/stocktransaction"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <InventoryTransaction
+                outletId={user?.outletId ?? ""}
+                outletName={user?.outlet ?? ""}
+              />
+            </Layout>
+          }
+        />
+        <Route
+          path="/stockreport"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <MonthlyInventoryReport
+                outletId={user?.outletId ?? ""}
+                outletName={user?.outlet ?? ""}
               />
             </Layout>
           }

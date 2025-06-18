@@ -4,14 +4,26 @@ export type FoodCategory = {
   name: string;
 };
 
+// NEW: Define FoodOptionCategory type to match Prisma schema
+export type FoodOptionCategory = {
+  id: string;
+  name: string;
+  selectionType: string; // e.g., "SINGLE_REQUIRED", "MULTIPLE_OPTIONAL"
+  minSelections: number;
+  maxSelections?: number | null;
+  quantityRule: string; // e.g., "NONE", "MATCH_PARENT_QTY", "CUSTOM_RANGE"
+};
+
 /** Option that can be added to a food item */
 export type FoodOption = {
-  quantity: number;
-  selected: unknown;
+  quantity?: number; // Optional quantity for custom range options
+  selected?: boolean; // Optional selected state for UI
   id: string;
   name: string;
   available: boolean;
   extraPrice: number;
+  foodId: string;
+  foodOptionCategory?: FoodOptionCategory | null;
 };
 
 /** Pricing based on order type */
