@@ -315,7 +315,7 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
       !transactionType ||
       quantity === "" ||
       isNaN(parseFloat(quantity)) ||
-      parseFloat(quantity) <= 0 ||
+      parseFloat(quantity) < 0 ||
       !selectedDate ||
       !selectedIngredientId || // Use selected ID
       !outletId
@@ -392,7 +392,7 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
     if (
       quantity === "" ||
       isNaN(parseFloat(quantity)) ||
-      parseFloat(quantity) <= 0
+      parseFloat(quantity) < 0
     ) {
       setErrorMessage("Please enter a valid positive quantity to edit.");
       return;

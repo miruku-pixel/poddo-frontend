@@ -186,6 +186,12 @@ const OrderStatus: React.FC<Props> = ({
                   <div className="flex flex-col">
                     {" "}
                     {/* This new div will stack its children vertically */}
+                    <span className="font-medium text-red-300 text-xl">
+                      {" "}
+                      {/* Use a span and adjust text size if needed */}
+                      Order No : {order.orderNumber}{" "}
+                      {/* Assuming order.id for order number, or replace with actual orderNumber */}
+                    </span>
                     <span className="font-medium text-white">
                       {order.orderType?.name?.toLowerCase() === "dine in"
                         ? `Table ${order.tableNumber || "N/A"} - ${
@@ -194,12 +200,6 @@ const OrderStatus: React.FC<Props> = ({
                         : `${order.orderType?.name || "N/A"} - ${
                             order.waiterName || "N/A"
                           }`}
-                    </span>
-                    <span className="font-medium text-yellow-300 text-sm">
-                      {" "}
-                      {/* Use a span and adjust text size if needed */}
-                      Order No : {order.orderNumber}{" "}
-                      {/* Assuming order.id for order number, or replace with actual orderNumber */}
                     </span>
                     {/* Conditional rendering for Customer Name */}
                     {showCustomerName && order.customerName && (
