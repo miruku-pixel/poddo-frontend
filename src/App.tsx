@@ -18,7 +18,7 @@ import SalesDetailPage from "./pages/SalesDetailPage";
 import DailyRevenueReport from "./pages/DailyRevenueReport";
 import InventoryTransaction from "./pages/InventoryTransaction";
 import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
-import ThermalPrinterTester from "./pages/testPrint";
+import ThermalPrinterTester from "./pages/TestPrint";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
