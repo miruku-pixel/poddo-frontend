@@ -166,6 +166,8 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
     return () => clearInterval(timer);
   }, []);
 
+  const isSuper = user.role === "SUPERUSER";
+
   return (
     <>
       {/* Main Navbar wrapper: Consistent border and background */}
@@ -219,6 +221,19 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         {/* Reports Dropdown Link: Removed outer p-[2px] wrapper. ReportsDropdown component handles its own styling. */}
         <ReportsDropdown userRole={user.role} />
         <StockDropdown userRole={user.role} />
+        {/* TestPrint Link - Only visible if userRole is ADMIN */}
+        {isSuper && (
+          <Link
+            to="/testprint"
+            className={`block px-4 py-2 rounded-lg transition ${
+              location.pathname === "/testprint"
+                ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+                : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
+          >
+            TestPrint
+          </Link>
+        )}
       </div>
     </>
   );

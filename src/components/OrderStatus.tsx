@@ -150,7 +150,9 @@ const OrderStatus: React.FC<Props> = ({
         const canUpdate =
           isCashier || isAdmin || (canWaiterUpdate && checkStatusUpdate);
         const canEditOrderItems =
-          isCashier || (isWaiter && currentUserId === order.waiterId);
+          isCashier ||
+          isAdmin ||
+          (isWaiter && currentUserId === order.waiterId);
 
         // Determine visibility based on orderType.name
         const showCustomerName =
@@ -319,7 +321,8 @@ const OrderStatus: React.FC<Props> = ({
                         Edit Item
                       </button>
                     )}
-                    {currentUserRole === "CASHIER" &&
+                    {(currentUserRole === "CASHIER" ||
+                      currentUserRole === "ADMIN") &&
                       currentStatus === "SERVED" && (
                         <button
                           className="text-sm px-2 py-1 border rounded bg-pink-500 text-white hover:bg-pink-600 transition"

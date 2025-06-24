@@ -18,6 +18,7 @@ import SalesDetailPage from "./pages/SalesDetailPage";
 import DailyRevenueReport from "./pages/DailyRevenueReport";
 import InventoryTransaction from "./pages/InventoryTransaction";
 import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
+import ThermalPrinterTester from "./pages/testPrint";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -143,6 +144,14 @@ function App() {
                 outletId={user?.outletId ?? ""}
                 outletName={user?.outlet ?? ""}
               />
+            </Layout>
+          }
+        />
+        <Route
+          path="/testprint"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <ThermalPrinterTester />
             </Layout>
           }
         />

@@ -8,6 +8,7 @@ import { RawOrder, RawOrderItem, RawOption } from "../types/RawOrder";
 function mapOrderResponse(raw: RawOrder): Order {
   return {
     id: raw.id,
+    outletName: raw.outlet?.name ?? "Unknown Outlet",
     orderNumber: raw.orderNumber,
     status: raw.status as Order["status"],
     remark: raw.remark,

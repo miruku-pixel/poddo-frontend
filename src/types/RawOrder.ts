@@ -1,5 +1,8 @@
 export type RawOrder = {
   id: string;
+  outlet?: {
+    name?: string;
+  };
   orderNumber: string;
   status: string;
   remark?: string;
