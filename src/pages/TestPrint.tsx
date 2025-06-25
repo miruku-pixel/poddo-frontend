@@ -1,7 +1,7 @@
 import React, { useState, useEffect, type ChangeEvent } from "react";
 
 // Define the PHP Printer URL as a module-level constant
-const PHP_PRINTER_URL: string = "http://192.168.100.138:8000/print.php";
+const PHP_PRINTER_URL: string = "http://localhost:8000/print.php";
 
 // Main component for thermal printer testing
 const ThermalPrinterTester: React.FC = () => {
