@@ -23,6 +23,7 @@ interface PaymentTypeRevenue {
 interface CashReconciliation {
   previousDayBalance: number;
   cashDeposit: number;
+  adjustmentAmount: number; // Add adjustment to cashReconciliation interface
   remainingBalance: number;
   isLocked: boolean; // Add isLocked to cashReconciliation interface
   submittedByCashierName?: string;
@@ -133,6 +134,7 @@ export default function DailyRevenueReport({
   const [loadingCapture, setLoadingCapture] = useState(false); // New loading state for capture
   const [error, setError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [adjustmentInput, setAdjustmentInput] = useState<number | "">("");
   const reportRef = useRef<HTMLDivElement>(null); // Ref to the div we want to capture
 
   const [paymentRemarks, setPaymentRemarks] = useState<{
@@ -163,6 +165,7 @@ export default function DailyRevenueReport({
     setError(null);
     setSubmitMessage(null);
     setCashDepositInput("");
+    setAdjustmentInput("");
     setPaymentRemarks({}); // Clear remarks before fetching to ensure fresh data
     setIsLocked(false); // Reset lock status before fetching
     setDisplayedCashierName(cashierName); // Reset displayed name to current user's name
@@ -189,17 +192,21 @@ export default function DailyRevenueReport({
         setCashDepositInput("");
       }
 
+      setAdjustmentInput(
+        isNaN(data.summary.cashReconciliation.adjustmentAmount)
+          ? ""
+          : data.summary.cashReconciliation.adjustmentAmount
+      );
+
       if (data.summary.paymentRemarks) {
         setPaymentRemarks(data.summary.paymentRemarks);
       } else {
         setPaymentRemarks({});
       }
 
-      // Set the lock status from the API response
       const isReportLocked = data.summary.cashReconciliation.isLocked || false;
       setIsLocked(isReportLocked);
 
-      // Correctly set displayedCashierName based on fetched data or current user
       if (
         isReportLocked &&
         data.summary.cashReconciliation.submittedByCashierName
@@ -208,7 +215,6 @@ export default function DailyRevenueReport({
           data.summary.cashReconciliation.submittedByCashierName
         );
       } else {
-        // If not locked or no submitted name, default to the currently logged-in cashier's name
         setDisplayedCashierName("-");
       }
     } catch (error) {
@@ -247,8 +253,10 @@ export default function DailyRevenueReport({
             outletId,
             date: reportDate,
             cashDeposit: Number(cashDepositInput),
+            adjustment: Number(adjustmentInput || 0),
             remarks: paymentRemarks,
             submittedByCashierName: cashierName,
+            ...(userRole === "ADMIN" && {}),
           }),
         }
       );
@@ -359,9 +367,10 @@ export default function DailyRevenueReport({
         (p) => p.paymentType === "CASH"
       )?.Revenue || 0;
     const currentCashDeposit = Number(cashDepositInput || 0);
+    const adjustment = userRole === "ADMIN" ? Number(adjustmentInput || 0) : 0;
 
-    return previousBalance + cashRevenue - currentCashDeposit;
-  }, [dailyReportData, cashDepositInput]);
+    return previousBalance + cashRevenue + adjustment - currentCashDeposit;
+  }, [dailyReportData, cashDepositInput, adjustmentInput, userRole]);
 
   useEffect(() => {
     if (outletId) {
@@ -399,8 +408,6 @@ export default function DailyRevenueReport({
     );
   }, [debitPaymentTypes, getPaymentTypeRevenue]);
 
-  // Determine if general inputs (excluding date) should be read-only based on lock status or loading states
-  // The date input should NEVER be locked by `isLocked`
   const shouldGeneralInputsBeReadOnly =
     isLocked || loadingReport || loadingSubmit;
   // Determine if submit button should be disabled
@@ -551,6 +558,17 @@ export default function DailyRevenueReport({
                 placeholder="Nilai Transfer"
                 step="0.01"
                 readOnly={shouldGeneralInputsBeReadOnly}
+              />
+              <InputField
+                label="Adjustment"
+                type="number"
+                value={adjustmentInput}
+                onChange={(val) =>
+                  setAdjustmentInput(val === "" ? "" : Number(val))
+                }
+                placeholder="Nilai Adjustment"
+                step="0.01"
+                readOnly={shouldGeneralInputsBeReadOnly || userRole !== "ADMIN"}
               />
               <div className="flex justify-between font-bold text-md pt-2">
                 <span>Total sisa uang lebih</span>

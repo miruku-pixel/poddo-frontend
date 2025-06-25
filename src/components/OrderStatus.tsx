@@ -18,6 +18,8 @@ interface Props {
   currentUserRole?: string | null;
 }
 
+const PHP_PRINTER_URL: string = "http://localhost:8000/print.php";
+
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case "PENDING":
@@ -136,6 +138,98 @@ const OrderStatus: React.FC<Props> = ({
   );
 
   const navigate = useNavigate();
+
+  const formatKitchenReceipt = (order: Order): string => {
+    const now = new Date();
+    const printedAt = now.toLocaleString("id-ID");
+    let text = "";
+
+    text += "------------------------------\n";
+    text += "       ORDER TO KITCHEN\n";
+    text += "------------------------------\n";
+    text += `${printedAt}\n`;
+    text += `Order No: ${order.orderNumber}\n`;
+    text += `Waiter: ${order.waiterName || "-"}\n`;
+    text += `Order Type: ${order.orderType?.name || "-"}\n`;
+
+    if (order.orderType?.name === "Dine In" && order.tableNumber) {
+      text += `Table: ${order.tableNumber}\n`;
+    }
+
+    if (
+      (order.orderType?.name === "GoFood" ||
+        order.orderType?.name === "GrabFood") &&
+      order.onlineCode
+    ) {
+      text += `Online Code: ${order.onlineCode}\n`;
+    }
+
+    if (
+      order.orderType?.name !== "Dine In" &&
+      order.customerName &&
+      order.customerName.trim() !== ""
+    ) {
+      text += `Customer: ${order.customerName}\n`;
+    }
+
+    if (order.remark) {
+      text += `Remark: ${order.remark}\n`;
+    }
+    text += "------------------------------\n";
+
+    // Group by category
+    const groupedItems: Record<string, typeof order.items> = {};
+    order.items.forEach((item) => {
+      const categoryName = item.foodCategoryName || "Uncategorized";
+      if (!groupedItems[categoryName]) {
+        groupedItems[categoryName] = [];
+      }
+      groupedItems[categoryName].push(item);
+    });
+
+    Object.entries(groupedItems).forEach(([category, items]) => {
+      text += `\n# ${category}\n`;
+      items.forEach((item) => {
+        const itemText = `${item.foodName} x${item.quantity}`;
+        const isCanceled = item.status === "CANCELED";
+        text += isCanceled ? `X (CANCELED) ${itemText}\n` : `[] ${itemText}\n`;
+
+        item.options.forEach((opt) => {
+          const optText = `> ${opt.name} x${opt.quantity}`;
+          const isOptCanceled = opt.status === "CANCELED";
+          text += isOptCanceled ? `(CANCELED) ${optText}\n` : `  ${optText}\n`;
+        });
+      });
+    });
+
+    text += "\n------------------------------\n";
+    text += "  Please prepare this order\n";
+    text += "------------------------------\n\n\n";
+
+    return text;
+  };
+
+  const handlePrintKitchenOrder = async (order: Order) => {
+    try {
+      const content = formatKitchenReceipt(order);
+
+      const res = await fetch(PHP_PRINTER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: content }),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert("❌ Print failed: " + (data.error || "Unknown error"));
+      } else {
+        alert("✅ Sent to kitchen printer.");
+      }
+    } catch (err) {
+      console.error("Kitchen print error:", err);
+      alert("❌ Could not reach printer server.");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto mt-6 space-y-4">
@@ -321,6 +415,17 @@ const OrderStatus: React.FC<Props> = ({
                         Edit Item
                       </button>
                     )}
+
+                    <button
+                      className="text-sm px-2 py-1 border rounded bg-green-500 text-white hover:bg-green-600 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrintKitchenOrder(order);
+                      }}
+                    >
+                      🖨️ Print to Kitchen
+                    </button>
+
                     {(currentUserRole === "CASHIER" ||
                       currentUserRole === "ADMIN") &&
                       currentStatus === "SERVED" && (

@@ -50,7 +50,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
     receiptText += "--------------------------------\n";
     receiptText += "          RECEIPT\n";
     receiptText += "--------------------------------\n";
-    receiptText += `Outlet Name: ${order.outletName}\n`;
+    receiptText += `Outlet: ${order.outletName}\n`;
     receiptText += `Receipt #: ${billing.receiptNumber}\n`;
     receiptText += `Order No: ${billing.orderNumber}\n`;
 
@@ -63,25 +63,17 @@ export default function Receipt({ order, billing }: ReceiptProps) {
     if (showTableNumber) {
       receiptText += `Table: ${order.tableNumber}\n`;
     }
+    receiptText += `Paid At:     ${new Date(billing.paidAt).toLocaleString(
+      "id-ID"
+    )}\n`;
 
     receiptText += "--------------------------------\n";
-    receiptText += "ITEMS:\n";
-    receiptText += "--------------------------------\n";
-
     // Filter order items to only include those with quantity > 0
     order.items
       .filter((item) => item.quantity > 0)
       .forEach((item) => {
-        receiptText += `${item.foodName} x${item.quantity}  ${formatRupiah(
-          item.totalPrice
-        )}\n`;
-        // Filter options to only include those with quantity > 0
-        const filteredOptions = item.options.filter((opt) => opt.quantity > 0);
-        if (filteredOptions.length > 0) {
-          filteredOptions.forEach((opt) => {
-            receiptText += `  - ${opt.name} x${opt.quantity} \n`;
-          });
-        }
+        receiptText += `${item.foodName}\n`;
+        receiptText += `x${item.quantity}   ${formatRupiah(item.totalPrice)}\n`;
       });
 
     receiptText += "--------------------------------\n";
@@ -90,9 +82,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
     receiptText += `Paid:        ${formatRupiah(billing.amountPaid)}\n`;
     receiptText += `Change:      ${formatRupiah(billing.changeGiven)}\n`;
     receiptText += `Payment Type: ${billing.paymentType}\n`;
-    receiptText += `Paid At:     ${new Date(
-      billing.paidAt
-    ).toLocaleString()}\n`;
+
     if (billing.remark) {
       receiptText += `Remark:      ${billing.remark}\n`;
     }
