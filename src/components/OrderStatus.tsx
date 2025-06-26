@@ -188,7 +188,7 @@ const OrderStatus: React.FC<Props> = ({
     });
 
     Object.entries(groupedItems).forEach(([category, items]) => {
-      text += `\n# ${category}\n`;
+      text += `\n# ${category.toUpperCase()}\n`;
       items.forEach((item) => {
         const itemText = `${item.foodName} x${item.quantity}`;
         const isCanceled = item.status === "CANCELED";

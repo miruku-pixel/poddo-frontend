@@ -51,8 +51,8 @@ export default function Receipt({ order, billing }: ReceiptProps) {
     receiptText += "          RECEIPT\n";
     receiptText += "--------------------------------\n";
     receiptText += `Outlet: ${order.outletName}\n`;
+    receiptText += `Cashier: ${billing.cashier.username}\n`;
     receiptText += `Receipt #: ${billing.receiptNumber}\n`;
-    receiptText += `Order No: ${billing.orderNumber}\n`;
 
     if (showOnlineCode && order.onlineCode) {
       receiptText += `Online Code: ${order.onlineCode}\n`;

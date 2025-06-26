@@ -11,6 +11,10 @@ export interface Billing {
   changeGiven: number;
   paymentType: string;
   cashierId: string;
+  cashier: {
+    id: string;
+    username: string;
+  };
   receiptNumber: string;
   remark?: string;
   createdAt: string;
