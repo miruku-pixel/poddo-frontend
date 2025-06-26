@@ -12,7 +12,7 @@ interface ReceiptProps {
 const formatRupiah = (value: number | string) =>
   `Rp ${Number(value).toLocaleString("id-ID")}`;
 
-const PHP_PRINTER_URL: string = "http://192.168.100.138:8000/print.php";
+const PHP_PRINTER_URL: string = "http://localhost:8000/print.php";
 
 export default function Receipt({ order, billing }: ReceiptProps) {
   // Determine order type name for easier use in logic
