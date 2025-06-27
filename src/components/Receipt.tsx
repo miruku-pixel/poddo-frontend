@@ -37,7 +37,9 @@ export default function Receipt({ order, billing }: ReceiptProps) {
   // Conditional visibility flags
   const isDineIn = orderTypeName === "Dine In";
   const isOnlineOrder =
-    orderTypeName === "GrabFood" || orderTypeName === "GoFood";
+    orderTypeName === "GrabFood" ||
+    orderTypeName === "ShopeeFood" ||
+    orderTypeName === "GoFood";
   //const isTakeAway = orderTypeName === "Take Away";
 
   const showOnlineCode = isOnlineOrder;

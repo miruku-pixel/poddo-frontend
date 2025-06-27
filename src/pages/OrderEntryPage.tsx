@@ -294,12 +294,14 @@ export default function OrderEntry({ user }: OrderEntryProps) {
     if (
       currentOrderTypeName === "Take Away" ||
       currentOrderTypeName === "GrabFood" ||
+      currentOrderTypeName === "ShopeeFood" ||
       currentOrderTypeName === "GoFood"
     ) {
       customerNamePayload = customerName;
     }
     if (
       currentOrderTypeName === "GrabFood" ||
+      currentOrderTypeName === "ShopeeFood" ||
       currentOrderTypeName === "GoFood"
     ) {
       onlineCodePayload = onlineCode;
@@ -438,6 +440,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
           {/* Conditional Rendering for Customer Name */}
           {(selectedOrderType?.name === "Take Away" ||
             selectedOrderType?.name === "GrabFood" ||
+            selectedOrderType?.name === "ShopeeFood" ||
             selectedOrderType?.name === "GoFood") && (
             <InputField
               label="Customer Name"
@@ -449,6 +452,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
 
           {/* Conditional Rendering for Online Code */}
           {(selectedOrderType?.name === "GrabFood" ||
+            selectedOrderType?.name === "ShopeeFood" ||
             selectedOrderType?.name === "GoFood") && (
             <InputField
               label="Online Code"

@@ -158,6 +158,7 @@ const OrderStatus: React.FC<Props> = ({
 
     if (
       (order.orderType?.name === "GoFood" ||
+        order.orderType?.name === "ShopeeFood" ||
         order.orderType?.name === "GrabFood") &&
       order.onlineCode
     ) {
@@ -252,10 +253,12 @@ const OrderStatus: React.FC<Props> = ({
         const showCustomerName =
           order.orderType?.name === "Take Away" ||
           order.orderType?.name === "GrabFood" ||
+          order.orderType?.name === "ShopeeFood" ||
           order.orderType?.name === "GoFood";
 
         const showOnlineCode =
           order.orderType?.name === "GrabFood" ||
+          order.orderType?.name === "ShopeeFood" ||
           order.orderType?.name === "GoFood";
 
         return (
