@@ -241,9 +241,8 @@ const OrderStatus: React.FC<Props> = ({
         const isWaiter = currentUserRole === "WAITER";
         const isAdmin = currentUserRole === "ADMIN";
         const canWaiterUpdate = isWaiter && currentUserId === order.waiterId;
-        const checkStatusUpdate = currentStatus === "SERVED";
-        const canUpdate =
-          isCashier || isAdmin || (canWaiterUpdate && checkStatusUpdate);
+        //const checkStatusUpdate = currentStatus === "SERVED";
+        const canUpdate = isCashier || isAdmin || canWaiterUpdate;
         const canEditOrderItems =
           isCashier ||
           isAdmin ||
@@ -349,11 +348,12 @@ const OrderStatus: React.FC<Props> = ({
                       {openDropdownId === order.id && (
                         <div className="absolute z-10 mt-1 w-40 rounded-md bg-black shadow-lg border border-green-300">
                           {(() => {
-                            let statusOptions: string[] = [];
-                            if (isWaiter && currentStatus === "SERVED") {
-                              statusOptions = ["PENDING", "SERVED"];
-                            } else {
-                              statusOptions = ["PENDING", "SERVED", "CANCELED"];
+                            const statusOptions: string[] = [
+                              "PENDING",
+                              "SERVED",
+                            ];
+                            if (isCashier || isAdmin) {
+                              statusOptions.push("CANCELED");
                             }
                             return statusOptions.map((status) => (
                               <button
