@@ -174,6 +174,8 @@ const transferOptionsVisibility: TransferOptionsVisibilityMap = {
   "PoDDo-Nagoya": ["TRANSFER_BENGKONG", "TRANSFER_SERAYA"],
   "PoDDo-Bengkong": ["TRANSFER_NAGOYA", "TRANSFER_SERAYA"],
   "PoDDo-Seraya": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG"],
+  "Podomoro-Malalayang": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_KLEAK"],
+  "Podomoro-Kleak": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG"],
   // Add more outlets and their allowed transfers here as they go live
 };
 
