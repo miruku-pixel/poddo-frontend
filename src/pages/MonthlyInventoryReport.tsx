@@ -195,6 +195,8 @@ export default function MonthlyInventoryReport({
         targetElement.style.maxHeight = "none"; // Allow content to expand fully
         targetElement.style.overflowY = "visible"; // Ensure all content is rendered for capture
 
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
         const dataUrl = await toPng(targetElement, {
           pixelRatio: 2, // For higher resolution image
           cacheBust: true, // Prevents caching of images
@@ -203,7 +205,7 @@ export default function MonthlyInventoryReport({
 
         // Create a temporary link element to download the image
         const link = document.createElement("a");
-        link.download = `MonthlyInventoryReport_${reportOutletName}_${selectedMonth}-${selectedYear}.png`;
+        link.download = `MonthlyInventoryReport_${reportOutletName}_${selectedMonth}-${selectedYear}.jpg`;
         link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
@@ -228,9 +230,15 @@ export default function MonthlyInventoryReport({
   const currentOutletTransferColumns =
     transferColumnVisibility[reportOutletName] || [];
 
+  const today = new Date();
+  const currentDay = String(today.getDate()).padStart(2, "0");
+  const currentMonthFormatted = String(today.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const currentYearFormatted = today.getFullYear();
+  const todayDateKey = `${currentYearFormatted}-${currentMonthFormatted}-${currentDay}`;
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6 flex flex-col items-center font-sans">
-      <div className="w-full max-w-full bg-gray-800 rounded-lg shadow-xl p-5 space-y-5 border border-green-700">
+      <div className="w-full max-w-full bg-gray-800 rounded-lg shadow-xl p-7 space-y-5 border border-green-700">
         {/* Header Section */}
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold text-green-400">
@@ -416,7 +424,7 @@ export default function MonthlyInventoryReport({
           <div
             ref={reportRef} // Attach the ref here
             className="mt-8 overflow-x-auto overflow-y-auto"
-            style={{ maxHeight: "70vh" }} // This style will be temporarily overridden by handleCaptureScreen
+            style={{ maxHeight: "80vh" }} // This style will be temporarily overridden by handleCaptureScreen
           >
             <h2 className="text-xl font-semibold text-green-300 mb-4">
               Stock Report for{" "}
@@ -469,75 +477,84 @@ export default function MonthlyInventoryReport({
                 </tr>
               </thead>
               <tbody className="text-gray-100 text-sm font-light">
-                {reportData.map((row: DailyReportEntry, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-green-700 hover:bg-gray-700"
-                  >
-                    <td className="py-3 px-6 text-left whitespace-nowrap">
-                      {row.date}
-                    </td>
-                    <td className="py-3 px-6 text-left">{row.ingredient}</td>
-                    <td className="py-3 px-6 text-right">
-                      {row.openingBalance}
-                    </td>
-                    <td className="py-3 px-6 text-right">{row.inbound}</td>
-                    <td className="py-3 px-6 text-right">{row.soldBoss}</td>
-                    <td className="py-3 px-6 text-right">{row.soldStaff}</td>
-                    <td className="py-3 px-6 text-right">{row.soldOther}</td>
-                    <td className="py-3 px-6 text-right">{row.discrepancy}</td>
-                    {/* Conditionally rendered Transfer Data Cells */}
-                    {currentOutletTransferColumns.includes(
-                      "transferNagoya"
-                    ) && (
-                      <td className="py-3 px-6 text-right">
-                        {row.transferNagoya}
+                {reportData.map((row: DailyReportEntry, index) => {
+                  const isToday = row.date === todayDateKey;
+                  return (
+                    <tr
+                      key={index}
+                      className={`border-b border-green-700 hover:bg-gray-700 ${
+                        isToday ? "text-yellow-300 font-extrabold" : "" // Highlighted class
+                      }`}
+                    >
+                      <td className="py-3 px-6 text-left whitespace-nowrap">
+                        {row.date}
                       </td>
-                    )}
-                    {currentOutletTransferColumns.includes(
-                      "transferSeraya"
-                    ) && (
+                      <td className="py-3 px-6 text-left">{row.ingredient}</td>
                       <td className="py-3 px-6 text-right">
-                        {row.transferSeraya}
+                        {row.openingBalance}
                       </td>
-                    )}
-                    {currentOutletTransferColumns.includes(
-                      "transferBengkong"
-                    ) && (
+                      <td className="py-3 px-6 text-right">{row.inbound}</td>
+                      <td className="py-3 px-6 text-right">{row.soldBoss}</td>
+                      <td className="py-3 px-6 text-right">{row.soldStaff}</td>
+                      <td className="py-3 px-6 text-right">{row.soldOther}</td>
                       <td className="py-3 px-6 text-right">
-                        {row.transferBengkong}
+                        {row.discrepancy}
                       </td>
-                    )}
-                    {currentOutletTransferColumns.includes(
-                      "transferMalalayang"
-                    ) && (
+                      {/* Conditionally rendered Transfer Data Cells */}
+                      {currentOutletTransferColumns.includes(
+                        "transferNagoya"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferNagoya}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes(
+                        "transferSeraya"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferSeraya}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes(
+                        "transferBengkong"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferBengkong}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes(
+                        "transferMalalayang"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferMalalayang}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes(
+                        "transferKleak"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferKleak}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes(
+                        "transferPaniki"
+                      ) && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferPaniki}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transferItc") && (
+                        <td className="py-3 px-6 text-right">
+                          {row.transferItc}
+                        </td>
+                      )}
+                      {/* End Conditionally rendered Transfer Data Cells */}
                       <td className="py-3 px-6 text-right">
-                        {row.transferMalalayang}
+                        {row.closingBalance}
                       </td>
-                    )}
-                    {currentOutletTransferColumns.includes("transferKleak") && (
-                      <td className="py-3 px-6 text-right">
-                        {row.transferKleak}
-                      </td>
-                    )}
-                    {currentOutletTransferColumns.includes(
-                      "transferPaniki"
-                    ) && (
-                      <td className="py-3 px-6 text-right">
-                        {row.transferPaniki}
-                      </td>
-                    )}
-                    {currentOutletTransferColumns.includes("transferItc") && (
-                      <td className="py-3 px-6 text-right">
-                        {row.transferItc}
-                      </td>
-                    )}
-                    {/* End Conditionally rendered Transfer Data Cells */}
-                    <td className="py-3 px-6 text-right">
-                      {row.closingBalance}
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -132,6 +132,7 @@ function App() {
               <InventoryTransaction
                 outletId={user?.outletId ?? ""}
                 outletName={user?.outlet ?? ""}
+                userRole={user?.role ?? "N/A"}
               />
             </Layout>
           }

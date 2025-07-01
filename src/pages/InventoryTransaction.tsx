@@ -8,6 +8,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth"; // Assuming this is corr
 type Props = {
   outletId: string;
   outletName: string;
+  userRole: string;
 };
 
 const CalendarIcon = ({
@@ -179,7 +180,11 @@ const transferOptionsVisibility: TransferOptionsVisibilityMap = {
   // Add more outlets and their allowed transfers here as they go live
 };
 
-export default function InventoryTransaction({ outletId, outletName }: Props) {
+export default function InventoryTransaction({
+  outletId,
+  outletName,
+  userRole,
+}: Props) {
   // State for ingredients and selected ingredient
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredientId, setSelectedIngredientId] = useState("");
@@ -194,6 +199,8 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
 
   // State for selected date, initialized to TODAY's date (formatted)
   const [selectedDate, setSelectedDate] = useState(formatDateToISO(new Date()));
+
+  const currentDateISO = formatDateToISO(new Date());
 
   const handleClearMessages = useCallback(() => {
     setErrorMessage("");
@@ -490,12 +497,22 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
       : []),
   ];
 
+  const shouldDisableInputsAndButtons =
+    isLoading || (userRole !== "ADMIN" && selectedDate !== currentDateISO);
   // Disable submit button if loading or if a record already exists for the selected date/ingredient/type
   const shouldSubmitBeDisabled =
-    isLoading || dailyRecordId !== null || !selectedIngredientId || !outletId;
+    isLoading ||
+    dailyRecordId !== null ||
+    !selectedIngredientId ||
+    !outletId ||
+    (userRole !== "ADMIN" && selectedDate !== currentDateISO); // New condition
   // Disable edit button if loading or if no record exists for the selected date/ingredient/type
   const shouldEditBeDisabled =
-    isLoading || dailyRecordId === null || !selectedIngredientId || !outletId;
+    isLoading ||
+    dailyRecordId === null ||
+    !selectedIngredientId ||
+    !outletId ||
+    (userRole !== "ADMIN" && selectedDate !== currentDateISO);
 
   return (
     <div className="min-h-screen text-white p-4 md:p-6 flex flex-col items-center font-sans">
@@ -595,7 +612,7 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
             value={quantity}
             onChange={setQuantity}
             placeholder="e.g., 10"
-            readOnly={isLoading}
+            readOnly={shouldDisableInputsAndButtons}
           />
 
           <InputField
@@ -604,7 +621,7 @@ export default function InventoryTransaction({ outletId, outletName }: Props) {
             value={note}
             onChange={setNote}
             placeholder="e.g., New delivery from supplier A / Stock missing due to damage"
-            readOnly={isLoading}
+            readOnly={shouldDisableInputsAndButtons}
             rows={3}
           />
         </div>
