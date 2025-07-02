@@ -14,11 +14,11 @@ import BillingPageWrapper from "./pages/BillingPageWrapper";
 import OrderEditPage from "./pages/OrderEditPage";
 import AddItemToOrderPage from "./pages/AddItemToOrderPage";
 import SalesReportPage from "./pages/SalesSummaryPage";
-import SalesDetailPage from "./pages/SalesDetailPage";
 import DailyRevenueReport from "./pages/DailyRevenueReport";
 import InventoryTransaction from "./pages/InventoryTransaction";
 import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
 import ThermalPrinterTester from "./pages/TestPrint";
+import KasbonSummaryReportPage from "./pages/KasbonSummaryReportPage";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -105,11 +105,12 @@ function App() {
             </Layout>
           }
         />
+
         <Route
-          path="/salesdetail"
+          path="/kasbonsummary"
           element={
             <Layout user={user} onLogout={handleLogout}>
-              <SalesDetailPage outletId={user?.outletId ?? ""} />
+              <KasbonSummaryReportPage outletId={user?.outletId ?? ""} />
             </Layout>
           }
         />

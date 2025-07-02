@@ -68,17 +68,16 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
           Daily Revenue Report
         </Link>
 
-        {/* Report 2 */}
         <Link
-          to="/salesdetail"
+          to="/kasbonsummary"
           className={`block px-4 py-2 rounded-lg transition m-2 ${
             // Kept m-2 for internal spacing of links
-            location.pathname === "/salesdetail"
+            location.pathname === "/kasbonsummary"
               ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
               : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
           }`}
         >
-          Sales Report in detail
+          Kasbon Summary Report
         </Link>
       </div>
     </div>
