@@ -12,5 +12,5 @@ export interface User {
   role: UserRole;
   outletId: string;
   outlet: string;
-  outletAccess: string[]; // just outlet IDs
+  outletAccess: { outletId: string; outletName: string }[];
 }

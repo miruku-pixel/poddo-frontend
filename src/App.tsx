@@ -40,6 +40,10 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    console.log("USER FROM /api/me:", user); // Add this to debug
+  }, [user]);
+
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
   };

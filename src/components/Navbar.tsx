@@ -177,7 +177,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
               User: {user.username}
             </p>
             <p className="text-sm text-green-300">
-              Outlet: {user.outlet || "N/A"}
+              Outlet: {user.outlet || "Unknown Outlet"}
             </p>
             <p className="text-sm text-green-300">{currentTime}</p>
           </div>
