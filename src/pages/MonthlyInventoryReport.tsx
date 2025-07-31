@@ -63,13 +63,16 @@ export default function MonthlyInventoryReport({
   const [errorMessage, setErrorMessage] = useState("");
   const [reportOutletName, setReportOutletName] = useState(outletName); // State to store outletName from API response
 
-  // New states for image capture functionality
+  // States for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 16; // Number of rows per page
+
+  // Ref for the *single* report table you want to capture
+  const reportRef = useRef<HTMLDivElement>(null);
+
   const [loadingCapture, setLoadingCapture] = useState(false);
   const [captureErrorMessage, setCaptureErrorMessage] = useState("");
   const [captureSuccessMessage, setCaptureSuccessMessage] = useState("");
-
-  // Ref for the table container to capture as image
-  const reportRef = useRef<HTMLDivElement>(null);
 
   const years = Array.from({ length: 5 }, (_, i) =>
     String(currentYear - 2 + i)
@@ -138,6 +141,7 @@ export default function MonthlyInventoryReport({
 
     setIsLoading(true);
     setReportData(null); // Clear previous data
+    setCurrentPage(1); // Reset to first page on new report generation
     setReportOutletName(outletName); // Reset report outlet name to initial prop value
 
     try {
@@ -175,56 +179,74 @@ export default function MonthlyInventoryReport({
     selectedYear,
     selectedIngredientId,
     outletId,
-    outletName, // Added outletName to dependencies since it's used to initialize reportOutletName
+    outletName,
     handleClearMessages,
-  ]); // Added outletId to dependencies
+  ]);
 
-  // Refactored handleExportToImage to handleCaptureScreen
   const handleCaptureScreen = useCallback(async () => {
-    if (reportRef.current) {
-      setLoadingCapture(true);
-      setCaptureErrorMessage(""); // Clear previous errors
-      setCaptureSuccessMessage(""); // Clear previous success messages
+    setLoadingCapture(true);
+    setCaptureErrorMessage("");
+    setCaptureSuccessMessage("");
 
-      const targetElement = reportRef.current;
-      const originalMaxHeight = targetElement.style.maxHeight;
-      const originalOverflowY = targetElement.style.overflowY;
-
-      try {
-        // Temporarily remove max-height and set overflow to visible
-        targetElement.style.maxHeight = "none"; // Allow content to expand fully
-        targetElement.style.overflowY = "visible"; // Ensure all content is rendered for capture
-
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        const dataUrl = await toPng(targetElement, {
-          pixelRatio: 2, // For higher resolution image
-          cacheBust: true, // Prevents caching of images
-          backgroundColor: "#1a202c", // Set background color to match the gray-900 of the parent div
-        });
-
-        // Create a temporary link element to download the image
-        const link = document.createElement("a");
-        link.download = `MonthlyInventoryReport_${reportOutletName}_${selectedMonth}-${selectedYear}.jpg`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        setCaptureSuccessMessage("Report captured successfully!");
-      } catch (err) {
-        console.error("Failed to capture screen:", err);
-        setCaptureErrorMessage("Failed to capture report. Please try again");
-      } finally {
-        // Restore original styles
-        targetElement.style.maxHeight = originalMaxHeight;
-        targetElement.style.overflowY = originalOverflowY;
-        setLoadingCapture(false);
-      }
-    } else {
+    if (!reportRef.current) {
       setCaptureErrorMessage("Report content not found for capture.");
+      setLoadingCapture(false);
+      return;
     }
-  }, [reportOutletName, selectedMonth, selectedYear]);
+
+    const targetElement = reportRef.current;
+    // Store original styles to restore them later
+    const originalMaxHeight = targetElement.style.maxHeight;
+    const originalOverflowY = targetElement.style.overflowY;
+    const originalPaddingBottom = targetElement.style.paddingBottom;
+    const originalPaddingTop = targetElement.style.paddingTop;
+
+    try {
+      // Temporarily expand the element for full capture
+      targetElement.style.maxHeight = "none";
+      targetElement.style.overflowY = "visible";
+      // *** INCREASE PADDING SIGNIFICANTLY ***
+      // This is the primary adjustment to ensure the last row is fully visible.
+      targetElement.style.paddingBottom = "50px"; // Increased from 20px
+      targetElement.style.paddingTop = "20px"; // Increased from 10px, for symmetry and safety
+
+      // Crucial: Wait for the browser to re-render the DOM after style changes.
+      // Use two requestAnimationFrame calls for extra certainty in some complex layouts.
+      await new Promise((resolve) => requestAnimationFrame(resolve)); // First frame to initiate layout
+      await new Promise((resolve) => requestAnimationFrame(resolve)); // Second frame to ensure layout is complete and rendered
+      await new Promise((resolve) => setTimeout(resolve, 200)); // Slightly longer additional delay (increased from 100ms)
+
+      // Recalculate dimensions AFTER layout is complete
+      const scrollHeight = targetElement.scrollHeight;
+      const clientWidth = targetElement.clientWidth;
+
+      const dataUrl = await toPng(targetElement, {
+        pixelRatio: 2,
+        cacheBust: true,
+        backgroundColor: "#1a202c",
+        width: clientWidth,
+        height: scrollHeight,
+      });
+
+      const link = document.createElement("a");
+      link.download = `MonthlyInventoryReport_${reportOutletName}_${selectedMonth}-${selectedYear}_Page${currentPage}.jpg`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setCaptureSuccessMessage("Current page captured successfully!");
+    } catch (err) {
+      console.error("Failed to capture screen:", err);
+      setCaptureErrorMessage("Failed to capture report. Please try again.");
+    } finally {
+      // Restore original styles
+      targetElement.style.maxHeight = originalMaxHeight;
+      targetElement.style.overflowY = originalOverflowY;
+      targetElement.style.paddingBottom = originalPaddingBottom;
+      targetElement.style.paddingTop = originalPaddingTop;
+      setLoadingCapture(false);
+    }
+  }, [reportOutletName, selectedMonth, selectedYear, currentPage]);
 
   // Determine which transfer columns to display based on the current outletName
   const currentOutletTransferColumns =
@@ -235,6 +257,17 @@ export default function MonthlyInventoryReport({
   const currentMonthFormatted = String(today.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
   const currentYearFormatted = today.getFullYear();
   const todayDateKey = `${currentYearFormatted}-${currentMonthFormatted}-${currentDay}`;
+
+  // Pagination logic
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = reportData
+    ? reportData.slice(indexOfFirstRow, indexOfLastRow)
+    : [];
+
+  const totalPages = reportData
+    ? Math.ceil(reportData.length / rowsPerPage)
+    : 0;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6 flex flex-col items-center font-sans">
@@ -415,69 +448,71 @@ export default function MonthlyInventoryReport({
               }
             `}
           >
-            {loadingCapture ? "Capturing Report..." : "Export to Image"}
+            {loadingCapture
+              ? "Capturing Current Page..."
+              : "Export Current Page to Image"}
           </button>
         )}
 
-        {/* Report Table */}
+        {/* Main Report Table (for user display and capture) */}
         {reportData && reportData.length > 0 && (
           <div
-            ref={reportRef} // Attach the ref here
-            className="mt-8 overflow-x-auto overflow-y-auto"
-            style={{ maxHeight: "80vh" }} // This style will be temporarily overridden by handleCaptureScreen
+            ref={reportRef} // Attach the single ref here
+            className="mt-8 overflow-x-auto overflow-y-auto pb-2"
+            style={{ maxHeight: "100vh" }}
           >
             <h2 className="text-xl font-semibold text-green-300 mb-4">
               Stock Report for{" "}
               {months.find((m) => m.value === selectedMonth)?.label}{" "}
-              {selectedYear} - {reportOutletName}{" "}
+              {selectedYear} - {reportOutletName} (Page {currentPage})
             </h2>
             <table className="min-w-full bg-gray-700 rounded-lg border border-green-400">
               <thead className="bg-green-500 text-white uppercase text-sm leading-normal sticky top-0 z-10">
                 <tr>
-                  <th className="py-3 px-6 text-left">Date</th>
-                  <th className="py-3 px-6 text-left">Bahan</th>
-                  <th className="py-3 px-6 text-right">Awal</th>
-                  <th className="py-3 px-6 text-right">Pemasukan</th>
-                  <th className="py-3 px-6 text-right">Boss</th>
-                  <th className="py-3 px-6 text-right">Staff</th>
-                  <th className="py-3 px-6 text-right">Penjualan</th>
-                  <th className="py-3 px-6 text-right">Rusak</th>
+                  <th className="py-1 px-4 text-center">Date</th>
+                  <th className="py-1 px-4 text-center">Bahan</th>
+                  <th className="py-1 px-4 text-center">Awal</th>
+                  <th className="py-1 px-4 text-center">Pemasukan</th>
+                  <th className="py-1 px-4 text-center">Boss</th>
+                  <th className="py-1 px-4 text-center">Staff</th>
+                  <th className="py-1 px-4 text-center">Penjualan</th>
+                  <th className="py-1 px-4 text-center">Rusak</th>
                   {/* Conditionally rendered Transfer Headers */}
                   {currentOutletTransferColumns.includes("transferNagoya") && (
-                    <th className="py-3 px-6 text-right">Transfer (Nagoya)</th>
+                    <th className="py-1 px-4 text-center">Transfer (Nagoya)</th>
                   )}
                   {currentOutletTransferColumns.includes("transferSeraya") && (
-                    <th className="py-3 px-6 text-right">Transfer (Seraya)</th>
+                    <th className="py-1 px-4 text-center">Transfer (Seraya)</th>
                   )}
                   {currentOutletTransferColumns.includes(
                     "transferBengkong"
                   ) && (
-                    <th className="py-3 px-6 text-right">
+                    <th className="py-1 px-4 text-center">
                       Transfer (Bengkong)
                     </th>
                   )}
                   {currentOutletTransferColumns.includes(
                     "transferMalalayang"
                   ) && (
-                    <th className="py-3 px-6 text-right">
+                    <th className="py-1 px-4 text-center">
                       Transfer (Malalayang)
                     </th>
                   )}
                   {currentOutletTransferColumns.includes("transferKleak") && (
-                    <th className="py-3 px-6 text-right">Transfer (Kleak)</th>
+                    <th className="py-1 px-4 text-center">Transfer (Kleak)</th>
                   )}
                   {currentOutletTransferColumns.includes("transferPaniki") && (
-                    <th className="py-3 px-6 text-right">Transfer (Paniki)</th>
+                    <th className="py-1 px-4 text-center">Transfer (Paniki)</th>
                   )}
                   {currentOutletTransferColumns.includes("transferItc") && (
-                    <th className="py-3 px-6 text-right">Transfer (ITC)</th>
+                    <th className="py-1 px-4 text-center">Transfer (ITC)</th>
                   )}
                   {/* End Conditionally rendered Transfer Headers */}
-                  <th className="py-3 px-6 text-right">Akhir</th>
+                  <th className="py-1 px-4 text-center">Akhir</th>
                 </tr>
               </thead>
               <tbody className="text-gray-100 text-sm font-light">
-                {reportData.map((row: DailyReportEntry, index) => {
+                {currentRows.map((row: DailyReportEntry, index) => {
                   const isToday = row.date === todayDateKey;
                   return (
                     <tr
@@ -486,70 +521,72 @@ export default function MonthlyInventoryReport({
                         isToday ? "text-yellow-300 font-extrabold" : "" // Highlighted class
                       }`}
                     >
-                      <td className="py-3 px-6 text-left whitespace-nowrap">
+                      <td className="py-1 px-4 text-center whitespace-nowrap">
                         {row.date}
                       </td>
-                      <td className="py-3 px-6 text-left">{row.ingredient}</td>
-                      <td className="py-3 px-6 text-right">
+                      <td className="py-1 px-4 text-center">
+                        {row.ingredient}
+                      </td>
+                      <td className="py-1 px-4 text-center">
                         {row.openingBalance}
                       </td>
-                      <td className="py-3 px-6 text-right">{row.inbound}</td>
-                      <td className="py-3 px-6 text-right">{row.soldBoss}</td>
-                      <td className="py-3 px-6 text-right">{row.soldStaff}</td>
-                      <td className="py-3 px-6 text-right">{row.soldOther}</td>
-                      <td className="py-3 px-6 text-right">
+                      <td className="py-1 px-4 text-center">{row.inbound}</td>
+                      <td className="py-1 px-4 text-center">{row.soldBoss}</td>
+                      <td className="py-1 px-4 text-center">{row.soldStaff}</td>
+                      <td className="py-1 px-4 text-center">{row.soldOther}</td>
+                      <td className="py-1 px-4 text-center">
                         {row.discrepancy}
                       </td>
                       {/* Conditionally rendered Transfer Data Cells */}
                       {currentOutletTransferColumns.includes(
                         "transferNagoya"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferNagoya}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes(
                         "transferSeraya"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferSeraya}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes(
                         "transferBengkong"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferBengkong}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes(
                         "transferMalalayang"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferMalalayang}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes(
                         "transferKleak"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferKleak}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes(
                         "transferPaniki"
                       ) && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferPaniki}
                         </td>
                       )}
                       {currentOutletTransferColumns.includes("transferItc") && (
-                        <td className="py-3 px-6 text-right">
+                        <td className="py-1 px-4 text-center">
                           {row.transferItc}
                         </td>
                       )}
                       {/* End Conditionally rendered Transfer Data Cells */}
-                      <td className="py-3 px-6 text-right">
+                      <td className="py-1 px-4 text-center">
                         {row.closingBalance}
                       </td>
                     </tr>
@@ -559,6 +596,42 @@ export default function MonthlyInventoryReport({
             </table>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {reportData && reportData.length > rowsPerPage && (
+          <div className="flex justify-center items-center mt-6 space-x-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1 || loadingCapture}
+              className={`px-4 py-2 rounded-md font-bold transition duration-200
+                ${
+                  currentPage === 1 || loadingCapture
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
+            >
+              Previous
+            </button>
+            <span className="text-lg text-white">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages || loadingCapture}
+              className={`px-4 py-2 rounded-md font-bold transition duration-200
+                ${
+                  currentPage === totalPages || loadingCapture
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
+
         {reportData &&
           reportData.length === 0 &&
           !isLoading &&
