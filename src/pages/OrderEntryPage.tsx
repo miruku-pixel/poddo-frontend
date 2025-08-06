@@ -8,7 +8,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { User } from "../types/User";
 import { DiningTable } from "../types/DiningTable";
 import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
-import LOGO from "../assets/LOGO_PODDO.png";
+import LOGO from "../assets/LOGO_PODDO.webp";
 
 // Simplified InputField component
 function InputField({
