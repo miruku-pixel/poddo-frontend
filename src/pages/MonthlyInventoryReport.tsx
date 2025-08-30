@@ -39,6 +39,10 @@ const transferColumnVisibility: TransferColumnVisibilityMap = {
   "PoDDo-Nagoya": ["transferBengkong", "transferSeraya"],
   "PoDDo-Bengkong": ["transferNagoya", "transferSeraya"],
   "PoDDo-Seraya": ["transferNagoya", "transferBengkong"],
+  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc"],
+  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc"],
+  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki"],
+  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc"],
   // Add more outlets here as they go live
   // "Another-Outlet": ["transferTypeX", "transferTypeY"],
 };
