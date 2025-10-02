@@ -43,7 +43,7 @@ function mapOrderResponse(raw: RawOrder): Order {
     discount: raw.discount ?? 0,
     total: raw.total ?? 0,
     orderType: raw.orderType ?? { id: "", name: "Unknown" },
-    orderTypeDiscountPercentage: raw.orderTypeDiscountPercentage ?? undefined, // Assuming this is included in the raw data
+    orderTypeDiscountPercentage: raw.orderTypeDiscountPercentage ?? undefined,
   };
 }
 

@@ -9,16 +9,14 @@ interface BillingFormProps {
   onBilled: (billing: Billing) => void;
 }
 
-// ✅ Filter function to remove canceled items and canceled options
 const getCleanItems = (order: Order) =>
   order.items
-    .filter((item) => item.status !== "CANCELED") // ✅ only remove canceled items
+    .filter((item) => item.status !== "CANCELED")
     .map((item) => ({
       ...item,
-      options: item.options.filter((opt) => opt.status !== "CANCELED"), // ✅ remove canceled options
+      options: item.options.filter((opt) => opt.status !== "CANCELED"),
     }));
 
-// ✅ Helper to calculate subtotal from order items
 function calculateSubtotal(order: Order) {
   return order.items.reduce((sum, item) => {
     const optionsTotal = item.options.reduce(
@@ -34,7 +32,6 @@ function calculateTax() {
   return 0;
 }
 
-// Helper for formatting
 const formatRupiah = (value: number | string) =>
   `Rp ${Number(value).toLocaleString("id-ID")}`;
 
@@ -71,24 +68,20 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
     !isManualDiscountAllowed &&
     order.orderTypeDiscountPercentage !== undefined &&
     order.orderTypeDiscountPercentage !== null
-      ? order.total * order.orderTypeDiscountPercentage // Apply percentage to order.total
+      ? order.total * order.orderTypeDiscountPercentage
       : 0;
 
   useEffect(() => {
     if (!isManualDiscountAllowed) {
-      // For Gojek, Grab, etc., auto-fill the discount
-      // Use Math.round for currency to avoid floating point issues
       setManualDiscount(Math.round(backendCalculatedDiscount));
     } else {
-      // For Dine In/Take Away, reset to the order's initial discount or 0
-      // This ensures the field is editable and shows the original value if order type changes
       setManualDiscount(order.discount ?? 0);
     }
   }, [
     isManualDiscountAllowed,
     backendCalculatedDiscount,
     order.discount,
-    order.orderType?.name, // Add order.orderType?.name to dependencies
+    order.orderType?.name,
   ]);
 
   useEffect(() => {

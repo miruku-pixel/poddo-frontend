@@ -166,6 +166,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
   }, []);
 
   const isSuper = user.role === "SUPERUSER";
+  const isAdmin = user.role === "ADMIN";
 
   return (
     <>
@@ -206,6 +207,18 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         >
           Order Entry
         </Link>
+        {isAdmin && (
+          <Link
+            to="/cancelbilling"
+            className={`block px-4 py-2 rounded-lg transition ${
+              location.pathname === "/cancelbilling"
+                ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+                : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
+          >
+            Cancel Billing
+          </Link>
+        )}
         {/* Status Link: Consistent border and background. Bold border when active. */}
         <Link
           to="/status"

@@ -19,6 +19,7 @@ import InventoryTransaction from "./pages/InventoryTransaction";
 import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
 import ThermalPrinterTester from "./pages/TestPrint";
 import KasbonSummaryReportPage from "./pages/KasbonSummaryReportPage";
+import CancelBilling from "./pages/CancelBilling";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -150,6 +151,14 @@ function App() {
                 outletId={user?.outletId ?? ""}
                 outletName={user?.outlet ?? ""}
               />
+            </Layout>
+          }
+        />
+        <Route
+          path="/cancelbilling"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <CancelBilling outletId={user?.outletId ?? ""} />
             </Layout>
           }
         />
