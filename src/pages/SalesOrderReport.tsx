@@ -12,6 +12,7 @@ interface ReportBillingEntry {
   status: "PAID" | "VOID" | "PENDING";
   paymentType: string;
   cashier: string; // Cashier's username
+  orderType: string;
   paidAt: string; // ISO DateTime string
 }
 
@@ -349,7 +350,10 @@ export default function SalesOrderReport({ outletId }: Props) {
                       Status
                     </th>
                     <th className="px-3 py-3 w-16 text-center hidden sm:table-cell">
-                      Type
+                      Order Type
+                    </th>
+                    <th className="px-3 py-3 w-16 text-center hidden sm:table-cell">
+                      Payment Type
                     </th>
                     <th className="px-3 py-3 w-24 currency">Subtotal</th>
                     <th className="px-3 py-3 w-24 currency hidden sm:table-cell">
@@ -391,6 +395,9 @@ export default function SalesOrderReport({ outletId }: Props) {
                       </td>
                       <td className="px-3 py-3 text-center hidden md:table-cell">
                         <StatusBadge status={item.status} />
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-400 hidden sm:table-cell">
+                        {item.orderType}
                       </td>
                       <td className="px-3 py-3 text-center text-gray-400 hidden sm:table-cell">
                         {item.paymentType}
