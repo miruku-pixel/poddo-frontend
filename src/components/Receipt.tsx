@@ -107,7 +107,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: printContent }), // Send the formatted text
+        body: JSON.stringify({ text: printContent, type: "billing" }),
       });
 
       const data: { success?: boolean; error?: string; message?: string } =

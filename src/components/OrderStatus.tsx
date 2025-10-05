@@ -212,12 +212,12 @@ const OrderStatus: React.FC<Props> = ({
 
   const handlePrintKitchenOrder = async (order: Order) => {
     try {
-      const content = formatKitchenReceipt(order);
+      const printContent = formatKitchenReceipt(order);
 
       const res = await fetch(PHP_PRINTER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: content }),
+        body: JSON.stringify({ text: printContent, type: "kitchen" }),
       });
 
       const data = await res.json();
