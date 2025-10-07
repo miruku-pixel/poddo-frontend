@@ -23,7 +23,7 @@ jobs:
           npm ci   
           npm run build
 
-      - name: 3.5. 🔎 DEBUG: Check Build Folder
+      - name: 3.5. Check Build Folder
         run: |
           echo "--- Current Directory ---"
           pwd
