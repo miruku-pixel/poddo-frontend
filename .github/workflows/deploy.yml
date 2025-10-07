@@ -41,5 +41,5 @@ jobs:
           port: 22
           
           # These inputs are now supported by scp-action
-          source: "build/" 
-          target: "/var/www/poddo-frontend/" 
+          source: "dist/" 
+          target: "/var/www/poddo-frontend/html" 
