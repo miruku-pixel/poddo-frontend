@@ -23,15 +23,6 @@ jobs:
           npm ci   
           npm run build
 
-      - name: 3.5. Check Build Folder
-        run: |
-          echo "--- Current Directory ---"
-          pwd
-          echo "--- Files and Folders ---"
-          ls -la
-          echo "--- Checking 'build' Contents ---"
-          ls -la build/
-
       - name: 4. Deploy Static Files to VPS Web Root
         uses: appleboy/scp-action@v0.1.7 
         with:
