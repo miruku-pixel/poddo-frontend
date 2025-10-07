@@ -24,15 +24,13 @@ jobs:
           npm run build
 
       - name: 4. Deploy Static Files to VPS Web Root
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/scp-action@v0.1.7 
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           
+          # These inputs are now supported by scp-action
           source: "build/*" 
-          target: "/var/www/poddo-frontend/html"
-          
-          script: |
-            echo "Deployment complete."
+          target: "/var/www/poddo-frontend/html" 
