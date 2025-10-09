@@ -19,6 +19,8 @@ jobs:
           node-version: '20'
 
       - name: 3. Install Dependencies and Build React App
+        env:
+          VITE_BACKEND_URL: ${{ secrets.VITE_API_URL_PROD }} 
         run: |
           npm ci   
           npm run build
