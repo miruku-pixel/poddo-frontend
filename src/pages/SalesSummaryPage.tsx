@@ -39,11 +39,11 @@ interface FoodSalesByCategoryAndOrderType {
 type SortDirection = "asc" | "desc" | null;
 
 const ALL_ORDER_TYPES = [
+  "GrabFood",
+  "GoFood",
+  "ShopeeFood",
   "Dine In",
   "Take Away",
-  "GoFood",
-  "GrabFood",
-  "ShopeeFood",
   "Kasbon",
 ];
 
