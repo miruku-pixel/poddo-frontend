@@ -18,7 +18,7 @@ export default function OrderSummary({
   setOrderRemark,
   submitOrder,
   submitLabel,
-  currentUserRole, // Destructure currentUserRole from props
+  currentUserRole,
 }: OrderSummaryProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 

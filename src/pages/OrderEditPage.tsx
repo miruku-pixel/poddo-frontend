@@ -177,30 +177,27 @@ export default function OrderEditPage() {
         }
         setError(errorMessage);
       } finally {
-        setLoading(false); // End loading regardless of success or failure
+        setLoading(false);
       }
     };
 
-    // Only fetch data if orderId is available (prevents fetching on initial render before params are ready)
     if (orderId) {
       fetchData();
     }
-  }, [orderId, reset]); // Dependency array: re-run if orderId or reset function changes
+  }, [orderId, reset]);
 
-  // --- Form Submission Handler ---
   const onSubmit = async (data: OrderForm) => {
-    setApiError(null); // Clear previous API errors
+    setApiError(null);
     try {
-      // Prepare payload for the API
       const payload = {
         items: data.items.map((item) => ({
-          id: item.id, // Include existing OrderItem ID for updates/cancellations
+          id: item.id,
           quantity: Number(item.quantity),
           status: item.status,
           options: item.options.map((opt) => ({
-            id: opt.id, // Include existing OrderItemOption ID
+            id: opt.id,
             quantity: Number(opt.quantity),
-            status: opt.status, // Send option status as well
+            status: opt.status,
           })),
         })),
       };
@@ -208,14 +205,13 @@ export default function OrderEditPage() {
       const response = await fetchWithAuth(
         `/api/orders/${orderId}/items/batch-update`,
         {
-          method: "PATCH", // Using PATCH for partial updates
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         }
       );
 
       if (!response.ok) {
-        // Handle non-OK responses
         let errorMessage = "Failed to update order.";
         try {
           const errorJson = await response.json();
@@ -226,10 +222,8 @@ export default function OrderEditPage() {
         throw new Error(errorMessage);
       }
 
-      // Redirect to status page instead of alert
       navigate("/status");
     } catch (err: unknown) {
-      // Catch as unknown for type safety
       console.error("Error submitting form:", err);
       setApiError(
         err instanceof Error

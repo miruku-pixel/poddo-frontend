@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import DiningTableSelector from "../components/DiningTableSelector";
 import MenuItemList from "../components/MenuItemList";
 import OrderSummary from "../components/OrderSummary";
-import SuccessMessage from "../components/SuccessMessage";
 import OrderTypeSelector, { OrderType } from "../components/OrderTypeSelector";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { User } from "../types/User";
@@ -45,14 +45,12 @@ interface OrderEntryProps {
 }
 
 export default function OrderEntry({ user }: OrderEntryProps) {
+  const navigate = useNavigate();
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [selectedTableId, setSelectedTableId] = useState<string>("");
   const [menu, setMenu] = useState<FoodItem[]>([]);
   const [orderRemark, setOrderRemark] = useState<string>("");
-  const [orderSubmitted, setOrderSubmitted] = useState(false);
-  const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string>("");
 
-  // NEW: State for order type
   const [selectedOrderTypeId, setSelectedOrderTypeId] = useState<string>("");
   const [selectedOrderType, setSelectedOrderType] = useState<OrderType | null>(
     null
@@ -253,17 +251,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       console.warn("Submission blocked: Customer Name missing.");
       return;
     }
-    /*
-    if (
-      (currentOrderTypeName === "GrabFood" ||
-        currentOrderTypeName === "GoFood") &&
-      !onlineCode
-    ) {
-      alert("Online Code is required for GrabFood/GoFood orders.");
-      console.warn("Submission blocked: Online Code missing.");
-      return;
-    }
-*/
+
     const items = Object.entries(selectedItems)
       .map(([foodId, itemData]) => {
         const menuItem = menu.find((m) => m.id === foodId);
@@ -334,42 +322,20 @@ export default function OrderEntry({ user }: OrderEntryProps) {
         throw new Error("Failed to submit order");
       }
 
-      // Assuming your API returns the created order object, including its ID or a specific orderNumber
-      const result = await response.json(); // Parse the response JSON
-      const OrderNo = result.orderNumber; // Or result.orderNumber if your API returns a specific order number field
+      const result = await response.json();
+      const orderId = result.id; // Use 'id' or 'orderId' based on your API structure
 
-      // A quick way to get a shortened ID for display, if orderNumber isn't explicitly returned
-      // Otherwise, use `result.orderNumber` directly if your backend provides it.
-      const displayOrderNumber = OrderNo
-        ? OrderNo.slice(-6).toUpperCase()
-        : "N/A";
-      setSubmittedOrderNumber(displayOrderNumber); // Set the order number state
-
-      // Reset state after successful submit
-      const resetMenu = menu.map((item) => ({
-        ...item,
-        selected: false,
-        quantity: 1,
-        options: item.options.map((opt) => ({
-          ...opt,
-          selected: false,
-          quantity: 1,
-        })),
-      }));
-
-      setMenu(resetMenu);
       setSelectedItems({});
       setOrderRemark("");
       setSelectedTableId("");
       setCustomerName(""); // Reset customer name
       setOnlineCode(""); // Reset online code
-      setOrderSubmitted(true);
+
+      if (orderId) {
+        navigate(`/billing/${orderId}`);
+      }
 
       window.scrollTo({ top: 0, behavior: "smooth" });
-
-      setTimeout(() => {
-        setOrderSubmitted(false);
-      }, 2000);
     } catch (err) {
       console.error(err);
       alert("Failed to submit order.");
@@ -412,8 +378,6 @@ export default function OrderEntry({ user }: OrderEntryProps) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      {orderSubmitted && <SuccessMessage orderNumber={submittedOrderNumber} />}
-
       {/* Header Section: H1, Selectors, Inputs, and Logo */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         {" "}

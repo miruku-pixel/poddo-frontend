@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from "react";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
-import * as htmlToImage from "html-to-image"; // Import html-to-image
+import * as htmlToImage from "html-to-image";
 import { IoCalendarOutline } from "react-icons/io5";
 
 interface OrderItemDisplay {
@@ -22,7 +22,7 @@ function InputField({
   value,
   onChange,
   type = "text",
-  className, // className is now directly a prop
+  className,
 }: {
   label: string;
   value: string;
@@ -45,7 +45,6 @@ function InputField({
   return (
     <div className={className}>
       {" "}
-      {/* Apply className here */}
       <label className="block text-sm text-gray-300 mb-1">{label}</label>
       <div className="relative">
         <input
@@ -95,7 +94,6 @@ export default function KasbonSummaryReportPage({
   const [exportLoading, setExportLoading] = useState<boolean>(false);
   const [showExportButton, setShowExportButton] = useState<boolean>(false);
 
-  // Ref for the content to be captured as an image
   const reportRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
@@ -112,8 +110,8 @@ export default function KasbonSummaryReportPage({
 
     setIsLoading(true);
     setErrorMessage(null);
-    setReportData(null); // Clear previous data
-    setShowExportButton(false); // Hide export button until new data is loaded
+    setReportData(null);
+    setShowExportButton(false);
 
     try {
       const params = new URLSearchParams({
@@ -133,7 +131,7 @@ export default function KasbonSummaryReportPage({
 
       const data: KasbonReportEntry[] = await res.json();
       setReportData(data);
-      setShowExportButton(true); // Show export button after successful data fetch
+      setShowExportButton(true);
 
       if (data.length === 0) {
         setErrorMessage(
@@ -143,7 +141,7 @@ export default function KasbonSummaryReportPage({
     } catch (error) {
       console.error("Error fetching KASBON summary:", error);
       setErrorMessage("Failed to fetch KASBON summary. Please try again.");
-      setShowExportButton(false); // Hide export button on error
+      setShowExportButton(false);
     } finally {
       setIsLoading(false);
     }
@@ -162,9 +160,8 @@ export default function KasbonSummaryReportPage({
   const handleExportToImage = useCallback(async () => {
     if (reportRef.current) {
       setExportLoading(true);
-      setErrorMessage(null); // Clear previous errors
+      setErrorMessage(null);
 
-      // Temporarily remove max-height and set overflow to visible for capture
       const targetElement = reportRef.current;
       const originalMaxHeight = targetElement.style.maxHeight;
       const originalOverflowY = targetElement.style.overflowY;

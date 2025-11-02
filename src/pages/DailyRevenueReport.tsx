@@ -1,20 +1,17 @@
 // src/components/DailyRevenueReport.tsx
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { IoCalendarOutline } from "react-icons/io5";
-import { fetchWithAuth } from "../utils/fetchWithAuth"; // Assuming this is correctly configured
-import { UserRole } from "../types/User"; // Adjust the import path based on your project structure
+import { fetchWithAuth } from "../utils/fetchWithAuth";
+import { UserRole } from "../types/User";
 
-// Import html-to-image functions
 import * as htmlToImage from "html-to-image";
-// Or import { toPng } from 'html-to-image'; if you only need PNG
 
 type Props = {
   outletId: string;
   cashierName?: string;
-  userRole: UserRole; // User role prop
+  userRole: UserRole;
 };
 
-// --- Interfaces for API Response ---
 interface PaymentTypeRevenue {
   paymentType: string;
   Revenue: number;
@@ -23,9 +20,9 @@ interface PaymentTypeRevenue {
 interface CashReconciliation {
   previousDayBalance: number;
   cashDeposit: number;
-  adjustmentAmount: number; // Add adjustment to cashReconciliation interface
+  adjustmentAmount: number;
   remainingBalance: number;
-  isLocked: boolean; // Add isLocked to cashReconciliation interface
+  isLocked: boolean;
   submittedByCashierName?: string;
 }
 
@@ -47,10 +44,8 @@ interface DailyRevenueReportData {
   summary: DailyRevenueSummary;
 }
 
-// --- Helper function for currency formatting ---
 const formatCurrency = (val: number) => `Rp ${val.toLocaleString("id-ID")}`;
 
-// --- Reusable InputField Component (Keep as is) ---
 function InputField({
   label,
   value,
@@ -60,7 +55,7 @@ function InputField({
   min = undefined,
   max = undefined,
   step = undefined,
-  readOnly = false, // This prop is crucial for locking
+  readOnly = false,
 }: {
   label: string;
   value: string | number;
@@ -116,11 +111,10 @@ function InputField({
   );
 }
 
-// --- Main Daily Revenue Report Component ---
 export default function DailyRevenueReport({
   outletId,
   cashierName = "Cashier User",
-  userRole, // Destructure userRole from props
+  userRole,
 }: Props) {
   const [reportDate, setReportDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -130,18 +124,18 @@ export default function DailyRevenueReport({
   const [cashDepositInput, setCashDepositInput] = useState<number | "">("");
   const [loadingReport, setLoadingReport] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-  const [loadingUnlock, setLoadingUnlock] = useState(false); // Loading state for unlock
-  const [loadingCapture, setLoadingCapture] = useState(false); // New loading state for capture
+  const [loadingUnlock, setLoadingUnlock] = useState(false);
+  const [loadingCapture, setLoadingCapture] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [adjustmentInput, setAdjustmentInput] = useState<number | "">("");
-  const reportRef = useRef<HTMLDivElement>(null); // Ref to the div we want to capture
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const [paymentRemarks, setPaymentRemarks] = useState<{
     [key: string]: string;
   }>({});
 
-  const [isLocked, setIsLocked] = useState(false); // State to track lock status
+  const [isLocked, setIsLocked] = useState(false);
   const [displayedCashierName, setDisplayedCashierName] = useState(cashierName);
 
   const handleRemarkChange = useCallback(
@@ -223,7 +217,7 @@ export default function DailyRevenueReport({
     } finally {
       setLoadingReport(false);
     }
-  }, [outletId, reportDate, cashierName]); // Added cashierName to dependencies for full reactivity
+  }, [outletId, reportDate, cashierName]);
 
   const submitCashReconciliation = async () => {
     // Prevent submission if already locked
@@ -269,10 +263,8 @@ export default function DailyRevenueReport({
       const data = await res.json();
       setSubmitMessage(data.message || "Submission successful!");
 
-      // Re-fetch the report to show updated data and lock status
       await fetchDailyReport();
     } catch (error) {
-      // Explicitly type error
       console.error("Failed to submit reconciliation:", error);
       setError("Failed to submit reconciliation. Please try again.");
     } finally {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Order } from "../types/Order";
 import OrderStatus from "../components/OrderStatus";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
@@ -54,13 +54,18 @@ const mapOrderResponse = (raw: RawOrder): Order => {
 export default function StatusPage({ user }: OrderStatusProps) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefreshOrders = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     if (user?.outletId) {
       const fetchOrders = async () => {
         try {
           const response = await fetchWithAuth(
-            `/api/status?outletId=${user.outletId}`,
+            `/api/status?outletId=${user.outletId}&refreshKey=${refreshKey}`,
             { method: "GET" }
           );
           if (!response.ok) throw new Error("Failed to fetch");
@@ -76,7 +81,7 @@ export default function StatusPage({ user }: OrderStatusProps) {
       };
       fetchOrders();
     }
-  }, [user?.outletId]);
+  }, [user?.outletId, refreshKey]);
 
   if (loading) return <div>Loading...</div>;
 
@@ -88,6 +93,7 @@ export default function StatusPage({ user }: OrderStatusProps) {
         orders={orders}
         currentUserId={user?.id}
         currentUserRole={user?.role}
+        onStatusUpdateSuccess={handleRefreshOrders}
       />
     </div>
   );

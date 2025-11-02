@@ -9,7 +9,7 @@ interface OrderTypeSelectorProps {
   orderTypes: OrderType[];
   selectedOrderTypeId: string;
   onChange: (orderTypeId: string) => void;
-  currentUserRole?: string | null; // Added: Current user's role
+  currentUserRole?: string | null;
 }
 
 const OrderTypeSelector: React.FC<OrderTypeSelectorProps> = ({
@@ -34,8 +34,6 @@ const OrderTypeSelector: React.FC<OrderTypeSelectorProps> = ({
       selectedOrderTypeId &&
       !availableOptions.some((type) => type.id === selectedOrderTypeId)
     ) {
-      // If the previously selected order type is no longer available for the current role,
-      // reset the selection to an empty value.
       onChange("");
     }
   }, [selectedOrderTypeId, availableOptions, onChange]); // Depend on availableOptions
