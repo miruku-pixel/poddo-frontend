@@ -66,8 +66,8 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
 
   const backendCalculatedDiscount =
     !isManualDiscountAllowed &&
-    order.orderTypeDiscountPercentage !== undefined &&
-    order.orderTypeDiscountPercentage !== null
+      order.orderTypeDiscountPercentage !== undefined &&
+      order.orderTypeDiscountPercentage !== null
       ? order.total * order.orderTypeDiscountPercentage
       : 0;
 
@@ -132,14 +132,19 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
     prevTotalRef.current = total;
   }, [total, amountPaid]);
 
+  const isUpdateMode = order.status === "PAID";
+
   const handleBilling = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const endpoint = isUpdateMode ? "/api/updateBilling" : "/api/billing";
+    const method = isUpdateMode ? "PUT" : "POST";
+
     try {
-      const res = await fetchWithAuth(`/api/billing`, {
-        method: "POST",
+      const res = await fetchWithAuth(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId: order.id,
@@ -201,12 +206,10 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
             </h2>
             <p className="text-xl font-medium text-orange-200">
               {order.orderType?.name?.toLowerCase() === "dine in"
-                ? `Table ${order.tableNumber || "N/A"} - ${
-                    order.waiterName || "N/A"
-                  }`
-                : `${order.orderType?.name || "N/A"} - ${
-                    order.waiterName || "N/A"
-                  }`}
+                ? `Table ${order.tableNumber || "N/A"} - ${order.waiterName || "N/A"
+                }`
+                : `${order.orderType?.name || "N/A"} - ${order.waiterName || "N/A"
+                }`}
             </p>
             {/* Start of responsive grid for order details */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4">
@@ -311,11 +314,10 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
                   }
                   // Conditionally set readOnly and apply disabled styling
                   readOnly={!isManualDiscountAllowed}
-                  className={`border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black ${
-                    !isManualDiscountAllowed
-                      ? "opacity-60 cursor-not-allowed bg-gray-200"
-                      : ""
-                  }`}
+                  className={`border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black ${!isManualDiscountAllowed
+                    ? "opacity-60 cursor-not-allowed bg-gray-200"
+                    : ""
+                    }`}
                   placeholder="e.g. 5,000"
                 />
               </div>
@@ -338,11 +340,10 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
                   )
                 }
                 readOnly={!isAmountPaidAllowed}
-                className={`border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black ${
-                  !isAmountPaidAllowed
-                    ? "opacity-60 cursor-not-allowed bg-gray-200"
-                    : ""
-                }`}
+                className={`border border-green-400 px-2 py-1 rounded w-32 text-right bg-white text-black ${!isAmountPaidAllowed
+                  ? "opacity-60 cursor-not-allowed bg-gray-200"
+                  : ""
+                  }`}
               />
             </div>
 
@@ -363,11 +364,10 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
                 value={paymentType}
                 onChange={(e) => setPaymentType(e.target.value)}
                 disabled={isPaymentTypeLocked} // Disable based on new state
-                className={`w-full border border-green-400 px-3 py-2 rounded bg-gray-700 text-green-100 ${
-                  isPaymentTypeLocked
-                    ? "opacity-60 cursor-not-allowed bg-gray-800"
-                    : ""
-                }`}
+                className={`w-full border border-green-400 px-3 py-2 rounded bg-gray-700 text-green-100 ${isPaymentTypeLocked
+                  ? "opacity-60 cursor-not-allowed bg-gray-800"
+                  : ""
+                  }`}
               >
                 <option value="CASH">Cash</option>
                 <option value="QRIS">QRIS</option>
@@ -406,7 +406,11 @@ export default function BillingForm({ order, onBilled }: BillingFormProps) {
                 className="bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded w-full md:w-auto"
                 disabled={loading}
               >
-                {loading ? "Processing..." : "Confirm Payment"}
+                {loading
+                  ? "Processing..."
+                  : isUpdateMode
+                    ? "Update Payment"
+                    : "Confirm Payment"}
               </button>
             </div>
             {error && <div className="text-red-400 mt-2">{error}</div>}

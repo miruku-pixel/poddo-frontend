@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Order } from "../types/Order";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import {
@@ -61,6 +62,7 @@ const getOrderTypeIcon = (orderTypeName: string | undefined | null) => {
 const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleUpdateStatus = useCallback(
     async (orderId: string, newStatus: string) => {
@@ -80,8 +82,7 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
           const errorData = await response.json();
           console.error("Failed to update order status:", errorData);
           alert(
-            `Failed to update status for order ${orderId}: ${
-              errorData?.error || "Unknown error"
+            `Failed to update status for order ${orderId}: ${errorData?.error || "Unknown error"
             }`
           );
         } else {
@@ -236,12 +237,10 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                     </span>
                     <span className="font-medium text-white">
                       {order.orderType?.name?.toLowerCase() === "dine in"
-                        ? `Table ${order.tableNumber || "N/A"} - ${
-                            order.waiterName || "N/A"
-                          }`
-                        : `${order.orderType?.name || "N/A"} - ${
-                            order.waiterName || "N/A"
-                          }`}
+                        ? `Table ${order.tableNumber || "N/A"} - ${order.waiterName || "N/A"
+                        }`
+                        : `${order.orderType?.name || "N/A"} - ${order.waiterName || "N/A"
+                        }`}
                     </span>
                     {/* Conditional rendering for Customer Name */}
                     {showCustomerName && order.customerName && (
@@ -257,7 +256,23 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-3"></div>
+                <div className="flex items-center space-x-3">
+                  {
+                    ["dine in", "take away"].includes(
+                      order.orderType?.name?.toLowerCase() || ""
+                    ) && (
+                      <button
+                        className="text-l px-2 py-1 border rounded bg-[#134686] text-white hover:bg-[#134686]/20 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/billing/${order.id}`);
+                        }}
+                      >
+                        Edit Payment
+                      </button>
+                    )
+                  }
+                </div>
               </div>
 
               {isExpanded && (
@@ -340,11 +355,10 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                                   <div key={item.id || idx}>
                                     {" "}
                                     <p
-                                      className={`font-semibold ${
-                                        isItemCanceled
-                                          ? "text-red-400"
-                                          : "text-white"
-                                      }`}
+                                      className={`font-semibold ${isItemCanceled
+                                        ? "text-red-400"
+                                        : "text-white"
+                                        }`}
                                     >
                                       {item.foodName}{" "}
                                       {isItemCanceled
@@ -353,11 +367,10 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                                     </p>
                                     {item.options.length > 0 && (
                                       <ul
-                                        className={`text-sm list-disc pl-5 ${
-                                          isItemCanceled
-                                            ? "text-red-400"
-                                            : "text-white"
-                                        }`}
+                                        className={`text-sm list-disc pl-5 ${isItemCanceled
+                                          ? "text-red-400"
+                                          : "text-white"
+                                          }`}
                                       >
                                         {item.options.map((opt, i) => {
                                           const isOptCanceled =
