@@ -84,10 +84,9 @@ function InputField({
       onChange(e.target.value),
     readOnly: readOnly,
     className: `w-full bg-gray-800 text-white border border-gray-600 rounded p-2 focus:outline-none focus:ring-1 focus:ring-green-500
-      ${
-        isDate
-          ? "appearance-none pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0"
-          : ""
+      ${isDate
+        ? "appearance-none pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0"
+        : ""
       }
       ${readOnly ? "bg-gray-700 text-gray-400 cursor-not-allowed" : ""}
       ${as === "textarea" ? "resize-none" : ""}
@@ -175,10 +174,11 @@ const transferOptionsVisibility: TransferOptionsVisibilityMap = {
   "PoDDo-Nagoya": ["TRANSFER_BENGKONG", "TRANSFER_SERAYA"],
   "PoDDo-Bengkong": ["TRANSFER_NAGOYA", "TRANSFER_SERAYA"],
   "PoDDo-Seraya": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG"],
-  "Podomoro-Malalayang": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_KLEAK"],
-  "Podomoro-Kleak": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG"],
-  "Xpress-Paniki": ["TRANSFER_ITC", "TRANSFER_KLEAK", "TRANSFER_MALALAYANG"],
-  "Xpress-ITC": ["TRANSFER_PANIKI", "TRANSFER_KLEAK", "TRANSFER_MALALAYANG"],
+  "Podomoro-Malalayang": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_KLEAK", "TRANSFER_MANTOS"],
+  "Podomoro-Kleak": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG", "TRANSFER_MANTOS"],
+  "Podomoro-Mantos": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG", "TRANSFER_KLEAK"],
+  "Xpress-Paniki": ["TRANSFER_ITC", "TRANSFER_KLEAK", "TRANSFER_MALALAYANG", "TRANSFER_MANTOS"],
+  "Xpress-ITC": ["TRANSFER_PANIKI", "TRANSFER_KLEAK", "TRANSFER_MALALAYANG", "TRANSFER_MANTOS"],
   // Add more outlets and their allowed transfers here as they go live
 };
 
@@ -365,7 +365,7 @@ export default function InventoryTransaction({
           setDailyRecordId(errorData.recordId);
           setErrorMessage(
             errorData.error ||
-              `A ${data.type} record for this ingredient and outlet already exists for this date. Use EDIT to modify.`
+            `A ${data.type} record for this ingredient and outlet already exists for this date. Use EDIT to modify.`
           );
         } else {
           throw new Error(errorData.error || "Failed to submit transaction.");
@@ -436,8 +436,8 @@ export default function InventoryTransaction({
         const errorData = await res.json();
         throw new Error(
           errorData.error ||
-            errorData.message ||
-            "Failed to update transaction."
+          errorData.message ||
+          "Failed to update transaction."
         );
       }
       const responseData = await res.json();
@@ -490,6 +490,9 @@ export default function InventoryTransaction({
       : []),
     ...(allowedTransferTypes.includes("TRANSFER_KLEAK")
       ? [{ value: "TRANSFER_KLEAK", label: "Transfer (Kleak)" }]
+      : []),
+    ...(allowedTransferTypes.includes("TRANSFER_MANTOS")
+      ? [{ value: "TRANSFER_MANTOS", label: "Transfer (Mantos)" }]
       : []),
     ...(allowedTransferTypes.includes("TRANSFER_PANIKI")
       ? [{ value: "TRANSFER_PANIKI", label: "Transfer (Paniki)" }]
@@ -634,10 +637,9 @@ export default function InventoryTransaction({
             onClick={handleSubmit}
             disabled={shouldSubmitBeDisabled}
             className={`flex-1 px-4 py-2 rounded font-semibold text-lg transition duration-200
-              ${
-                shouldSubmitBeDisabled
-                  ? "bg-blue-700 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              ${shouldSubmitBeDisabled
+                ? "bg-blue-700 text-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
               }
             `}
           >
@@ -647,10 +649,9 @@ export default function InventoryTransaction({
             onClick={handleEdit}
             disabled={shouldEditBeDisabled}
             className={`flex-1 px-4 py-2 rounded font-semibold text-lg transition duration-200
-              ${
-                shouldEditBeDisabled
-                  ? "bg-green-700 text-gray-400 cursor-not-allowed"
-                  : "bg-green-500 hover:bg-green-600 text-white"
+              ${shouldEditBeDisabled
+                ? "bg-green-700 text-gray-400 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600 text-white"
               }
             `}
           >
@@ -660,10 +661,9 @@ export default function InventoryTransaction({
             onClick={handleReset}
             disabled={isLoading}
             className={`flex-1 px-4 py-2 rounded font-semibold text-lg transition duration-200
-              ${
-                isLoading
-                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-500 hover:bg-gray-600 text-white"
+              ${isLoading
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-gray-500 hover:bg-gray-600 text-white"
               }
             `}
           >

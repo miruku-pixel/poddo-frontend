@@ -20,6 +20,7 @@ interface DailyReportEntry {
   transferKleak: number;
   transferPaniki: number;
   transferItc: number;
+  transferMantos: number;
   closingBalance: number;
 }
 
@@ -39,10 +40,11 @@ const transferColumnVisibility: TransferColumnVisibilityMap = {
   "PoDDo-Nagoya": ["transferBengkong", "transferSeraya"],
   "PoDDo-Bengkong": ["transferNagoya", "transferSeraya"],
   "PoDDo-Seraya": ["transferNagoya", "transferBengkong"],
-  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc"],
-  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc"],
-  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki"],
-  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc"],
+  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos"],
+  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos"],
+  "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang"],
+  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos"],
+  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos"],
   // Add more outlets here as they go live
   // "Another-Outlet": ["transferTypeX", "transferTypeY"],
 };
@@ -429,10 +431,9 @@ export default function MonthlyInventoryReport({
             isLoading || loadingCapture || !selectedIngredientId || !outletId
           }
           className={`w-full px-6 py-3 rounded-md font-bold text-lg transition duration-200
-            ${
-              isLoading || loadingCapture || !selectedIngredientId || !outletId
-                ? "bg-green-700 text-gray-400 cursor-not-allowed"
-                : "bg-green-500 hover:bg-green-600 text-white"
+            ${isLoading || loadingCapture || !selectedIngredientId || !outletId
+              ? "bg-green-700 text-gray-400 cursor-not-allowed"
+              : "bg-green-500 hover:bg-green-600 text-white"
             }
           `}
         >
@@ -445,10 +446,9 @@ export default function MonthlyInventoryReport({
             onClick={handleCaptureScreen}
             disabled={loadingCapture}
             className={`w-full mt-4 px-6 py-3 rounded-md font-bold text-lg transition duration-200
-              ${
-                loadingCapture
-                  ? "bg-blue-700 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              ${loadingCapture
+                ? "bg-blue-700 text-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
               }
             `}
           >
@@ -491,22 +491,25 @@ export default function MonthlyInventoryReport({
                   {currentOutletTransferColumns.includes(
                     "transferBengkong"
                   ) && (
-                    <th className="py-1 px-4 text-center">
-                      Transfer (Bengkong)
-                    </th>
-                  )}
+                      <th className="py-1 px-4 text-center">
+                        Transfer (Bengkong)
+                      </th>
+                    )}
                   {currentOutletTransferColumns.includes(
                     "transferMalalayang"
                   ) && (
-                    <th className="py-1 px-4 text-center">
-                      Transfer (Malalayang)
-                    </th>
-                  )}
+                      <th className="py-1 px-4 text-center">
+                        Transfer (Malalayang)
+                      </th>
+                    )}
                   {currentOutletTransferColumns.includes("transferKleak") && (
                     <th className="py-1 px-4 text-center">Transfer (Kleak)</th>
                   )}
                   {currentOutletTransferColumns.includes("transferPaniki") && (
                     <th className="py-1 px-4 text-center">Transfer (Paniki)</th>
+                  )}
+                  {currentOutletTransferColumns.includes("transferMantos") && (
+                    <th className="py-1 px-4 text-center">Transfer (Mantos)</th>
                   )}
                   {currentOutletTransferColumns.includes("transferItc") && (
                     <th className="py-1 px-4 text-center">Transfer (ITC)</th>
@@ -521,9 +524,8 @@ export default function MonthlyInventoryReport({
                   return (
                     <tr
                       key={index}
-                      className={`border-b border-green-700 hover:bg-gray-700 ${
-                        isToday ? "text-yellow-300 font-extrabold" : "" // Highlighted class
-                      }`}
+                      className={`border-b border-green-700 hover:bg-gray-700 ${isToday ? "text-yellow-300 font-extrabold" : "" // Highlighted class
+                        }`}
                     >
                       <td className="py-1 px-4 text-center whitespace-nowrap">
                         {row.date}
@@ -545,45 +547,52 @@ export default function MonthlyInventoryReport({
                       {currentOutletTransferColumns.includes(
                         "transferNagoya"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferNagoya}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferNagoya}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes(
                         "transferSeraya"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferSeraya}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferSeraya}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes(
                         "transferBengkong"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferBengkong}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferBengkong}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes(
                         "transferMalalayang"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferMalalayang}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferMalalayang}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes(
                         "transferKleak"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferKleak}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferKleak}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes(
                         "transferPaniki"
                       ) && (
-                        <td className="py-1 px-4 text-center">
-                          {row.transferPaniki}
-                        </td>
-                      )}
+                          <td className="py-1 px-4 text-center">
+                            {row.transferPaniki}
+                          </td>
+                        )}
+                      {currentOutletTransferColumns.includes(
+                        "transferMantos"
+                      ) && (
+                          <td className="py-1 px-4 text-center">
+                            {row.transferMantos}
+                          </td>
+                        )}
                       {currentOutletTransferColumns.includes("transferItc") && (
                         <td className="py-1 px-4 text-center">
                           {row.transferItc}
@@ -608,10 +617,9 @@ export default function MonthlyInventoryReport({
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1 || loadingCapture}
               className={`px-4 py-2 rounded-md font-bold transition duration-200
-                ${
-                  currentPage === 1 || loadingCapture
-                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700 text-white"
+                ${currentPage === 1 || loadingCapture
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
                 }`}
             >
               Previous
@@ -625,10 +633,9 @@ export default function MonthlyInventoryReport({
               }
               disabled={currentPage === totalPages || loadingCapture}
               className={`px-4 py-2 rounded-md font-bold transition duration-200
-                ${
-                  currentPage === totalPages || loadingCapture
-                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700 text-white"
+                ${currentPage === totalPages || loadingCapture
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
                 }`}
             >
               Next
