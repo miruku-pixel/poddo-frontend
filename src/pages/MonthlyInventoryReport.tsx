@@ -21,6 +21,10 @@ interface DailyReportEntry {
   transferPaniki: number;
   transferItc: number;
   transferMantos: number;
+  transferMaumbi: number;
+  transferTuminting: number;
+  transfer17Agustus: number;
+  transferPerkamil: number;
   closingBalance: number;
 }
 
@@ -40,11 +44,15 @@ const transferColumnVisibility: TransferColumnVisibilityMap = {
   "PoDDo-Nagoya": ["transferBengkong", "transferSeraya"],
   "PoDDo-Bengkong": ["transferNagoya", "transferSeraya"],
   "PoDDo-Seraya": ["transferNagoya", "transferBengkong"],
-  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos"],
-  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos"],
-  "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang"],
-  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos"],
-  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos"],
+  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-Maumbi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-Tuminting": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-17Agustus": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transferPerkamil"],
+  "Podomoro-Perkamil": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus"],
   // Add more outlets here as they go live
   // "Another-Outlet": ["transferTypeX", "transferTypeY"],
 };
@@ -514,6 +522,18 @@ export default function MonthlyInventoryReport({
                   {currentOutletTransferColumns.includes("transferItc") && (
                     <th className="py-1 px-4 text-center">Transfer (ITC)</th>
                   )}
+                  {currentOutletTransferColumns.includes("transferMaumbi") && (
+                    <th className="py-1 px-4 text-center">Transfer (Maumbi)</th>
+                  )}
+                  {currentOutletTransferColumns.includes("transferTuminting") && (
+                    <th className="py-1 px-4 text-center">Transfer (Tuminting)</th>
+                  )}
+                  {currentOutletTransferColumns.includes("transfer17Agustus") && (
+                    <th className="py-1 px-4 text-center">Transfer (17 Agustus)</th>
+                  )}
+                  {currentOutletTransferColumns.includes("transferPerkamil") && (
+                    <th className="py-1 px-4 text-center">Transfer (Perkamil)</th>
+                  )}
                   {/* End Conditionally rendered Transfer Headers */}
                   <th className="py-1 px-4 text-center">Akhir</th>
                 </tr>
@@ -596,6 +616,26 @@ export default function MonthlyInventoryReport({
                       {currentOutletTransferColumns.includes("transferItc") && (
                         <td className="py-1 px-4 text-center">
                           {row.transferItc}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transferMaumbi") && (
+                        <td className="py-1 px-4 text-center">
+                          {row.transferMaumbi}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transferTuminting") && (
+                        <td className="py-1 px-4 text-center">
+                          {row.transferTuminting}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transfer17Agustus") && (
+                        <td className="py-1 px-4 text-center">
+                          {row.transfer17Agustus}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transferPerkamil") && (
+                        <td className="py-1 px-4 text-center">
+                          {row.transferPerkamil}
                         </td>
                       )}
                       {/* End Conditionally rendered Transfer Data Cells */}
