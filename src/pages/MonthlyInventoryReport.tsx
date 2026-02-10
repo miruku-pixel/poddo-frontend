@@ -49,10 +49,10 @@ const transferColumnVisibility: TransferColumnVisibilityMap = {
   "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
   "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
   "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
-  "Podomoro-Maumbi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
-  "Podomoro-Tuminting": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transfer17Agustus", "transferPerkamil"],
-  "Podomoro-17Agustus": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transferPerkamil"],
-  "Podomoro-Perkamil": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus"],
+  "Xpress-Maumbi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Xpress-Tuminting": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transfer17Agustus", "transferPerkamil"],
+  "Xpress-17Agustus": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transferPerkamil"],
+  "Xpress-Perkamil": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus"],
   // Add more outlets here as they go live
   // "Another-Outlet": ["transferTypeX", "transferTypeY"],
 };
