@@ -75,7 +75,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
       .filter((item) => item.quantity > 0)
       .forEach((item) => {
         receiptText += `${item.foodName}\n`;
-        receiptText += `x${item.quantity}   ${formatRupiah(item.totalPrice)}\n`;
+        receiptText += `x${item.quantity}   @${item.unitPrice}   ${formatRupiah(item.totalPrice)}\n`;
       });
 
     receiptText += "--------------------------------\n";
@@ -145,8 +145,7 @@ export default function Receipt({ order, billing }: ReceiptProps) {
         {statusMessage && (
           <div
             className={`absolute top-0 left-0 right-0 p-3 text-center rounded-t-xl transition-all duration-300 ease-in-out z-10
-              ${
-                statusMessageType === "success" ? "bg-green-600" : "bg-red-600"
+              ${statusMessageType === "success" ? "bg-green-600" : "bg-red-600"
               } text-white font-semibold`}
             role="status"
           >
@@ -282,11 +281,10 @@ export default function Receipt({ order, billing }: ReceiptProps) {
         <button
           onClick={handlePrintFullReceipt}
           disabled={isPrinting} // Disable button while printing
-          className={`w-full py-2 rounded mt-4 text-white font-bold ${
-            isPrinting
-              ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className={`w-full py-2 rounded mt-4 text-white font-bold ${isPrinting
+            ? "bg-blue-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
+            }`}
         >
           {isPrinting ? "Printing..." : "Print Receipt"}
         </button>
