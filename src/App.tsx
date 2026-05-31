@@ -17,6 +17,8 @@ import SalesReportPage from "./pages/SalesSummaryPage";
 import DailyRevenueReport from "./pages/DailyRevenueReport";
 import InventoryTransaction from "./pages/InventoryTransaction";
 import MonthlyInventoryReport from "./pages/MonthlyInventoryReport";
+import ProsesUngkep from "./pages/ProsesUngkep";
+import StockAdjustment from "./pages/StockAdjustment";
 import ThermalPrinterTester from "./pages/TestPrint";
 import KasbonSummaryReportPage from "./pages/KasbonSummaryReportPage";
 import CancelBilling from "./pages/CancelBilling";
@@ -149,6 +151,28 @@ function App() {
           element={
             <Layout user={user} onLogout={handleLogout}>
               <MonthlyInventoryReport
+                outletId={user?.outletId ?? ""}
+                outletName={user?.outlet ?? ""}
+              />
+            </Layout>
+          }
+        />
+        <Route
+          path="/prosesungkep"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <ProsesUngkep
+                outletId={user?.outletId ?? ""}
+                outletName={user?.outlet ?? ""}
+              />
+            </Layout>
+          }
+        />
+        <Route
+          path="/stockadjustment"
+          element={
+            <Layout user={user} onLogout={handleLogout}>
+              <StockAdjustment
                 outletId={user?.outletId ?? ""}
                 outletName={user?.outlet ?? ""}
               />

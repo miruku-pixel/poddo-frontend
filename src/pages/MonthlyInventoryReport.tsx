@@ -3,16 +3,20 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { toPng } from "html-to-image";
 
 // Define a type for a single row of the monthly report data, including new sold categories and transfers
+// Define a type for a single row of the monthly report data, including new sold categories and transfers
 interface DailyReportEntry {
   date: string;
   ingredient: string;
   outletId: string;
   openingBalance: number;
   inbound: number;
+  prosesIn: number;
+  prosesOut: number;
   soldBoss: number;
   soldStaff: number;
   soldOther: number; // For general sales
   discrepancy: number;
+  adjustment: number; // Adjustment column (ADJUST_IN positive, ADJUST_OUT negative)
   transferNagoya: number; // New transfer types
   transferSeraya: number;
   transferBengkong: number;
@@ -26,6 +30,8 @@ interface DailyReportEntry {
   transfer17Agustus: number;
   transferPerkamil: number;
   closingBalance: number;
+
+
 }
 
 // Define a type for Ingredient to be used in state
@@ -485,9 +491,12 @@ export default function MonthlyInventoryReport({
                   <th className="py-1 px-4 text-center">Bahan</th>
                   <th className="py-1 px-4 text-center">Awal</th>
                   <th className="py-1 px-4 text-center">Pemasukan</th>
+                  <th className="py-1 px-4 text-center">Proses In</th>
+                  <th className="py-1 px-4 text-center">Proses Out</th>
                   <th className="py-1 px-4 text-center">Boss</th>
                   <th className="py-1 px-4 text-center">Staff</th>
                   <th className="py-1 px-4 text-center">Penjualan</th>
+                  <th className="py-1 px-4 text-center">Adjustment</th>
                   <th className="py-1 px-4 text-center">Rusak</th>
                   {/* Conditionally rendered Transfer Headers */}
                   {currentOutletTransferColumns.includes("transferNagoya") && (
@@ -557,9 +566,14 @@ export default function MonthlyInventoryReport({
                         {row.openingBalance}
                       </td>
                       <td className="py-1 px-4 text-center">{row.inbound}</td>
+                      <td className="py-1 px-4 text-center">{row.prosesIn}</td>
+                      <td className="py-1 px-4 text-center">{row.prosesOut}</td>
                       <td className="py-1 px-4 text-center">{row.soldBoss}</td>
                       <td className="py-1 px-4 text-center">{row.soldStaff}</td>
                       <td className="py-1 px-4 text-center">{row.soldOther}</td>
+                      <td className="py-1 px-4 text-center">
+                        {row.adjustment}
+                      </td>
                       <td className="py-1 px-4 text-center">
                         {row.discrepancy}
                       </td>

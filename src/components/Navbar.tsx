@@ -5,7 +5,8 @@ import { FaChevronRight } from "react-icons/fa"; // or use any icon
 
 
 type ReportsDropdownProps = {
-  userRole: string; 
+  user: User;
+  userRole: string;
 };
 
 export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
@@ -25,11 +26,10 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
         onClick={() => setIsOpen(!isOpen)}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${
-          isReportsButtonActive
-            ? "border-2 border-green-400 bg-gray-700 font-bold shadow-lg" // Bolder border when active
-            : "border border-green-400 bg-gray-800 hover:bg-gray-700" // Default/hover state
-        }`}
+        className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${isReportsButtonActive
+          ? "border-2 border-green-400 bg-gray-700 font-bold shadow-lg" // Bolder border when active
+          : "border border-green-400 bg-gray-800 hover:bg-gray-700" // Default/hover state
+          }`}
       >
         Reports
         <FaChevronRight className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -39,31 +39,26 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
       <div
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className={`absolute z-10 mt-2 w-56 origin-top-left rounded-md shadow-lg bg-gray-900 border border-green-400 transition-all duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={`absolute z-10 mt-2 w-56 origin-top-left rounded-md shadow-lg bg-gray-900 border border-green-400 transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
       >
         {/* Report 1 */}
         <Link
           to="/salessummary"
-          className={`block px-4 py-2 rounded-lg transition m-2 ${
-            
-            location.pathname === "/salessummary"
-              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+          className={`block px-4 py-2 rounded-lg transition m-2 ${location.pathname === "/salessummary"
+            ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+            : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
         >
           Sales Report Summary
         </Link>
 
         <Link
           to="/salesorderreport"
-          className={`block px-4 py-2 rounded-lg transition m-2 ${
-         
-            location.pathname === "/salesorderreport"
-              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+          className={`block px-4 py-2 rounded-lg transition m-2 ${location.pathname === "/salesorderreport"
+            ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+            : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
         >
           Sales Order Report
         </Link>
@@ -75,7 +70,7 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
             location.pathname === "/dailyrevenue"
               ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
               : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+            }`}
         >
           Daily Revenue Report
         </Link>
@@ -87,7 +82,7 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
             location.pathname === "/kasbonsummary"
               ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
               : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+            }`}
         >
           Kasbon Summary Report
         </Link>
@@ -96,7 +91,7 @@ export function ReportsDropdown({ userRole }: ReportsDropdownProps) {
   );
 }
 
-export function StockDropdown({ userRole }: ReportsDropdownProps) {
+export function StockDropdown({ user, userRole }: ReportsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -105,6 +100,11 @@ export function StockDropdown({ userRole }: ReportsDropdownProps) {
   }
 
   const isReportsButtonActive = isOpen;
+  const isAdmin = user.role === "ADMIN";
+
+  // Define authorized outlets for "Proses Ungkep"
+  const authorizedOutlets = ['PoDDo-Bengkong', 'Podomoro-Kleak', 'Podomoro-Malalayang'];
+  const showProsesUngkep = authorizedOutlets.includes(user.outlet || "");
 
   return (
     <div className="relative inline-block text-left">
@@ -113,11 +113,10 @@ export function StockDropdown({ userRole }: ReportsDropdownProps) {
         onClick={() => setIsOpen(!isOpen)}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${
-          isReportsButtonActive
-            ? "border-2 border-green-400 bg-gray-700 font-bold shadow-lg" // Bolder border when active
-            : "border border-green-400 bg-gray-800 hover:bg-gray-700" // Default/hover state
-        }`}
+        className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition ${isReportsButtonActive
+          ? "border-2 border-green-400 bg-gray-700 font-bold shadow-lg" // Bolder border when active
+          : "border border-green-400 bg-gray-800 hover:bg-gray-700" // Default/hover state
+          }`}
       >
         Stock
         <FaChevronRight className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -127,9 +126,8 @@ export function StockDropdown({ userRole }: ReportsDropdownProps) {
       <div
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
-        className={`absolute z-10 mt-2 w-56 origin-top-left rounded-md shadow-lg bg-gray-900 border border-green-400 transition-all duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={`absolute z-10 mt-2 w-56 origin-top-left rounded-md shadow-lg bg-gray-900 border border-green-400 transition-all duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
       >
         {/* Report 1 */}
         <Link
@@ -139,7 +137,7 @@ export function StockDropdown({ userRole }: ReportsDropdownProps) {
             location.pathname === "/stocktransaction"
               ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
               : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+            }`}
         >
           Daily Stock Transaction
         </Link>
@@ -151,10 +149,35 @@ export function StockDropdown({ userRole }: ReportsDropdownProps) {
             location.pathname === "/stockreport"
               ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
               : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+            }`}
         >
           Monthly Stock Report
         </Link>
+
+        {/* Conditional rendering for Proses Ungkep */}
+        {showProsesUngkep && (
+          <Link
+            to="/prosesungkep"
+            className={`block px-4 py-2 rounded-lg transition m-2 ${location.pathname === "/prosesungkep"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg"
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700"
+              }`}
+          >
+            Proses Ungkep
+          </Link>
+        )}
+
+        {isAdmin && (
+          <Link
+            to="/stockadjustment"
+            className={`block px-4 py-2 rounded-lg transition m-2 ${location.pathname === "/stockadjustment"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+              }`}
+          >
+            Stock Adjustment
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -211,22 +234,20 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         {/* Order Entry Link: Consistent border and background. Bold border when active. */}
         <Link
           to="/order"
-          className={`block px-4 py-2 rounded-lg transition ${
-            location.pathname === "/order"
-              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+          className={`block px-4 py-2 rounded-lg transition ${location.pathname === "/order"
+            ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+            : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
         >
           Order Entry
         </Link>
         {isAdmin && (
           <Link
             to="/cancelbilling"
-            className={`block px-4 py-2 rounded-lg transition ${
-              location.pathname === "/cancelbilling"
-                ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-                : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-            }`}
+            className={`block px-4 py-2 rounded-lg transition ${location.pathname === "/cancelbilling"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+              }`}
           >
             Cancel Billing
           </Link>
@@ -234,26 +255,24 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
         {/* Status Link: Consistent border and background. Bold border when active. */}
         <Link
           to="/status"
-          className={`block px-4 py-2 rounded-lg transition ${
-            location.pathname === "/status"
-              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-          }`}
+          className={`block px-4 py-2 rounded-lg transition ${location.pathname === "/status"
+            ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+            : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+            }`}
         >
           Status
         </Link>
         {/* Reports Dropdown Link: Removed outer p-[2px] wrapper. ReportsDropdown component handles its own styling. */}
-        <ReportsDropdown userRole={user.role} />
-        <StockDropdown userRole={user.role} />
+        <ReportsDropdown user={user} userRole={user.role} />
+        <StockDropdown user={user} userRole={user.role} />
         {/* TestPrint Link - Only visible if userRole is ADMIN */}
         {isSuper && (
           <Link
             to="/testprint"
-            className={`block px-4 py-2 rounded-lg transition ${
-              location.pathname === "/testprint"
-                ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
-                : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
-            }`}
+            className={`block px-4 py-2 rounded-lg transition ${location.pathname === "/testprint"
+              ? "border-2 border-green-400 bg-gray-700 font-bold text-white shadow-lg" // Bolder border when active
+              : "border border-green-400 bg-gray-800 text-white hover:bg-gray-700" // Default/hover state
+              }`}
           >
             TestPrint
           </Link>

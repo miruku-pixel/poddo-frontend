@@ -8,6 +8,7 @@ interface LoginFormProps {
 interface Outlet {
   id: string;
   name: string;
+  city?: string;
 }
 
 // Define the API_BASE_URL using import.meta.env
@@ -129,12 +130,26 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             onChange={(e) => setSelectedOutletId(e.target.value)}
             required
           >
-            <option value="">Select Outlet</option>
-            {outlets.map((outlet) => (
-              <option key={outlet.id} value={outlet.id}>
-                {outlet.name}
-              </option>
-            ))}
+            <option value="" style={{ color: "black" }}>Select Outlet</option>
+            {outlets.map((outlet) => {
+              const bgColor =
+                outlet.city === "Batam"
+                  ? "#fca5a5"
+                  : outlet.city === "Manado"
+                    ? "#86efac"
+                    : outlet.city === "Bali"
+                      ? "#fef08a"
+                      : undefined;
+              return (
+                <option
+                  key={outlet.id}
+                  value={outlet.id}
+                  style={{ backgroundColor: bgColor, color: "black" }}
+                >
+                  {outlet.name}
+                </option>
+              );
+            })}
           </select>
         </div>
         <div className="mb-4">
