@@ -37,10 +37,26 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             errorData.error || `Failed to fetch outlets: ${res.statusText}`
           );
         }
-        const data = await res.json();
-        setOutlets(data);
-        if (data.length > 0) {
-          setSelectedOutletId(data[0].id); // default selection
+        const data: Outlet[] = await res.json();
+        const getPriority = (city?: string) => {
+          if (!city) return 4;
+          const normalized = city.trim().toLowerCase();
+          if (normalized === "batam") return 1;   // Red (#fca5a5)
+          if (normalized === "manado") return 2;  // Green (#86efac)
+          if (normalized === "bali") return 3;    // Yellow (#fef08a)
+          return 4;                               // Default/Others
+        };
+        const sortedData = [...data].sort((a, b) => {
+          const pA = getPriority(a.city);
+          const pB = getPriority(b.city);
+          if (pA !== pB) {
+            return pA - pB;
+          }
+          return a.name.localeCompare(b.name);
+        });
+        setOutlets(sortedData);
+        if (sortedData.length > 0) {
+          setSelectedOutletId(sortedData[0].id); // default selection
         }
       } catch (err: unknown) {
         console.error("Failed to fetch outlets", err);

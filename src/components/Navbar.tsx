@@ -103,7 +103,7 @@ export function StockDropdown({ user, userRole }: ReportsDropdownProps) {
   const isAdmin = user.role === "ADMIN";
 
   // Define authorized outlets for "Proses Ungkep"
-  const authorizedOutlets = ['PoDDo-Bengkong', 'Podomoro-Kleak', 'Podomoro-Malalayang'];
+  const authorizedOutlets = ['PoDDo-Panjer', 'PoDDo-Bengkong', 'Podomoro-Kleak', 'Podomoro-Malalayang'];
   const showProsesUngkep = authorizedOutlets.includes(user.outlet || "");
 
   return (
