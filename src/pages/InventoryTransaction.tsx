@@ -171,9 +171,11 @@ type TransferOptionsVisibilityMap = {
 
 // Define a mapping for which transfer options to show based on outletName
 const transferOptionsVisibility: TransferOptionsVisibilityMap = {
-  "PoDDo-Nagoya": ["TRANSFER_BENGKONG", "TRANSFER_SERAYA"],
-  "PoDDo-Bengkong": ["TRANSFER_NAGOYA", "TRANSFER_SERAYA"],
-  "PoDDo-Seraya": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG"],
+  "PoDDo-Nagoya": ["TRANSFER_BENGKONG", "TRANSFER_SERAYA", "TRANSFER_TIBANINDAH", "TRANSFER_KDABATAMCENTRE"],
+  "PoDDo-Bengkong": ["TRANSFER_NAGOYA", "TRANSFER_SERAYA", "TRANSFER_TIBANINDAH", "TRANSFER_KDABATAMCENTRE"],
+  "PoDDo-Seraya": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG", "TRANSFER_TIBANINDAH", "TRANSFER_KDABATAMCENTRE"],
+  "PoDDo-TibanIndah": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG", "TRANSFER_SERAYA", "TRANSFER_KDABATAMCENTRE"],
+  "PoDDo-KDABatamCentre": ["TRANSFER_NAGOYA", "TRANSFER_BENGKONG", "TRANSFER_SERAYA", "TRANSFER_TIBANINDAH"],
   "Podomoro-Malalayang": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_KLEAK", "TRANSFER_MANTOS", "TRANSFER_MAUMBI", "TRANSFER_TUMINTING", "TRANSFER_17AGUSTUS", "TRANSFER_PERKAMIL", "TRANSFER_TATELI"],
   "Podomoro-Kleak": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG", "TRANSFER_MANTOS", "TRANSFER_MAUMBI", "TRANSFER_TUMINTING", "TRANSFER_17AGUSTUS", "TRANSFER_PERKAMIL", "TRANSFER_TATELI"],
   "Podomoro-Mantos": ["TRANSFER_ITC", "TRANSFER_PANIKI", "TRANSFER_MALALAYANG", "TRANSFER_KLEAK", "TRANSFER_MAUMBI", "TRANSFER_TUMINTING", "TRANSFER_17AGUSTUS", "TRANSFER_PERKAMIL", "TRANSFER_TATELI"],
@@ -488,6 +490,12 @@ export default function InventoryTransaction({
       : []),
     ...(allowedTransferTypes.includes("TRANSFER_BENGKONG")
       ? [{ value: "TRANSFER_BENGKONG", label: "Transfer (Bengkong)" }]
+      : []),
+    ...(allowedTransferTypes.includes("TRANSFER_TIBANINDAH")
+      ? [{ value: "TRANSFER_TIBANINDAH", label: "Transfer (TibanIndah)" }]
+      : []),
+    ...(allowedTransferTypes.includes("TRANSFER_KDABATAMCENTRE")
+      ? [{ value: "TRANSFER_KDABATAMCENTRE", label: "Transfer (KDA Batam Centre)" }]
       : []),
     ...(allowedTransferTypes.includes("TRANSFER_MALALAYANG")
       ? [{ value: "TRANSFER_MALALAYANG", label: "Transfer (Malalayang)" }]

@@ -30,6 +30,8 @@ interface DailyReportEntry {
   transfer17Agustus: number;
   transferPerkamil: number;
   transferTateli: number;
+  transferTibanIndah: number;
+  transferKdaBatamCentre: number;
   closingBalance: number;
 
 
@@ -48,9 +50,9 @@ type TransferColumnVisibilityMap = {
 
 // Define a mapping for which transfer columns to show based on outletName
 const transferColumnVisibility: TransferColumnVisibilityMap = {
-  "PoDDo-Nagoya": ["transferBengkong", "transferSeraya"],
-  "PoDDo-Bengkong": ["transferNagoya", "transferSeraya"],
-  "PoDDo-Seraya": ["transferNagoya", "transferBengkong"],
+  "PoDDo-Nagoya": ["transferBengkong", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre"],
+  "PoDDo-Bengkong": ["transferNagoya", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre"],
+  "PoDDo-Seraya": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferKdaBatamCentre"],
   "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
   "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
   "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
@@ -515,6 +517,20 @@ export default function MonthlyInventoryReport({
                       </th>
                     )}
                   {currentOutletTransferColumns.includes(
+                    "transferTibanIndah"
+                  ) && (
+                      <th className="py-1 px-4 text-center">
+                        Transfer (Tiban Indah)
+                      </th>
+                    )}
+                  {currentOutletTransferColumns.includes(
+                    "transferKdaBatamCentre"
+                  ) && (
+                      <th className="py-1 px-4 text-center">
+                        Transfer (KDA Batam Centre)
+                      </th>
+                    )}
+                  {currentOutletTransferColumns.includes(
                     "transferMalalayang"
                   ) && (
                       <th className="py-1 px-4 text-center">
@@ -602,6 +618,20 @@ export default function MonthlyInventoryReport({
                       ) && (
                           <td className="py-1 px-4 text-center">
                             {row.transferBengkong}
+                          </td>
+                        )}
+                      {currentOutletTransferColumns.includes(
+                        "transferTibanIndah"
+                      ) && (
+                          <td className="py-1 px-4 text-center">
+                            {row.transferTibanIndah}
+                          </td>
+                        )}
+                      {currentOutletTransferColumns.includes(
+                        "transferKdaBatamCentre"
+                      ) && (
+                          <td className="py-1 px-4 text-center">
+                            {row.transferKdaBatamCentre}
                           </td>
                         )}
                       {currentOutletTransferColumns.includes(
