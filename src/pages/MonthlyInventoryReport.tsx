@@ -32,6 +32,7 @@ interface DailyReportEntry {
   transferTateli: number;
   transferTibanIndah: number;
   transferKdaBatamCentre: number;
+  transferMitraRaya: number;
   closingBalance: number;
 
 
@@ -50,9 +51,12 @@ type TransferColumnVisibilityMap = {
 
 // Define a mapping for which transfer columns to show based on outletName
 const transferColumnVisibility: TransferColumnVisibilityMap = {
-  "PoDDo-Nagoya": ["transferBengkong", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre"],
-  "PoDDo-Bengkong": ["transferNagoya", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre"],
-  "PoDDo-Seraya": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferKdaBatamCentre"],
+  "PoDDo-Nagoya": ["transferBengkong", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre", "transferMitraRaya"],
+  "PoDDo-Bengkong": ["transferNagoya", "transferSeraya", "transferTibanIndah", "transferKdaBatamCentre", "transferMitraRaya"],
+  "PoDDo-Seraya": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferKdaBatamCentre", "transferMitraRaya"],
+  "Xpress-MitraRaya": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferKdaBatamCentre", "transferSeraya"],
+  "Xpress-KDABatamCentre": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferSeraya", "transferMitraRaya"],
+  "Xpress-TibanIndah": ["transferNagoya", "transferBengkong", "transferSeraya", "transferKdaBatamCentre", "transferMitraRaya"],
   "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
   "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
   "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
@@ -531,6 +535,13 @@ export default function MonthlyInventoryReport({
                       </th>
                     )}
                   {currentOutletTransferColumns.includes(
+                    "transferMitraRaya"
+                  ) && (
+                      <th className="py-1 px-4 text-center">
+                        Transfer (MitraRaya)
+                      </th>
+                    )}
+                  {currentOutletTransferColumns.includes(
                     "transferMalalayang"
                   ) && (
                       <th className="py-1 px-4 text-center">
@@ -632,6 +643,13 @@ export default function MonthlyInventoryReport({
                       ) && (
                           <td className="py-1 px-4 text-center">
                             {row.transferKdaBatamCentre}
+                          </td>
+                        )}
+                      {currentOutletTransferColumns.includes(
+                        "transferMitraRaya"
+                      ) && (
+                          <td className="py-1 px-4 text-center">
+                            {row.transferMitraRaya}
                           </td>
                         )}
                       {currentOutletTransferColumns.includes(
