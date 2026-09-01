@@ -159,6 +159,10 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
           const isOptCanceled = opt.status === "CANCELED";
           text += isOptCanceled ? `(CANCELED) ${optText}\n` : `  ${optText}\n`;
         });
+
+        if (item.remark) {
+          text += `  * Note: ${item.remark}\n`;
+        }
       });
     });
 
@@ -392,6 +396,11 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                                           );
                                         })}
                                       </ul>
+                                    )}
+                                    {item.remark && (
+                                      <p className="text-base font-semibold text-yellow-300 italic pl-5 mt-1">
+                                        Note: {item.remark}
+                                      </p>
                                     )}
                                   </div>
                                 );

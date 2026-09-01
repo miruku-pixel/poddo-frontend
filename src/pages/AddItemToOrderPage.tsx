@@ -65,6 +65,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
       selectedOptions: {
         [optionId: string]: number;
       };
+      remark?: string;
     };
   }>({});
 
@@ -170,9 +171,20 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
         : {
             ...prev,
-            [id]: { quantity: 1, selectedOptions: {} },
+            [id]: { quantity: 1, selectedOptions: {}, remark: "" },
           }
     );
+  };
+
+  const handleChangeRemark = (id: string, remark: string) => {
+    setSelectedItems((prev) => {
+      const item = prev[id];
+      if (!item) return prev;
+      return {
+        ...prev,
+        [id]: { ...item, remark },
+      };
+    });
   };
 
   const handleChangeQuantity = (id: string, delta: number) => {
@@ -255,6 +267,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         selected: isSelected,
         quantity: selection?.quantity || 1,
         options: enrichedOptions,
+        remark: selection?.remark || "",
       };
     });
   };
@@ -270,6 +283,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
             quantity,
           })
         ),
+        remark: itemData.remark || null,
       })),
     };
   };
@@ -377,6 +391,11 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
                     ))}
                 </ul>
               )}
+              {item.remark && (
+                <div className="ml-4 text-xs text-gray-300 italic">
+                  Remark: {item.remark}
+                </div>
+              )}
             </li>
           ))}
       </ul>
@@ -387,6 +406,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         onChangeQuantity={handleChangeQuantity}
         onToggleOption={handleToggleOption}
         onChangeOptionQuantity={handleChangeOptionQuantity}
+        onChangeRemark={handleChangeRemark}
       />
       <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6 pt-4 border-t border-green-400">
         <button

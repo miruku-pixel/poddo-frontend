@@ -18,6 +18,7 @@ export interface OrderItem {
   totalPrice: number;
   options: OrderItemOption[];
   status?: "ACTIVE" | "CANCELED";
+  remark?: string | null;
 }
 
 export interface Order {

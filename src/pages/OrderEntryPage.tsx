@@ -16,14 +16,16 @@ function InputField({
   value,
   onChange,
   type = "text",
+  className = "",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  type?: string; // Type is always honored directly now
+  type?: string;
+  className?: string;
 }) {
   return (
-    <div>
+    <div className={className}>
       <label className="block text-sm font-medium text-white mb-1">
         {label}
       </label>
@@ -128,6 +130,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       selectedOptions: {
         [optionId: string]: number;
       };
+      remark?: string;
     };
   }>({});
 
@@ -136,10 +139,21 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       id in prev
         ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
         : {
-            ...prev,
-            [id]: { quantity: 1, selectedOptions: {} },
-          }
+          ...prev,
+          [id]: { quantity: 1, selectedOptions: {}, remark: "" },
+        }
     );
+  };
+
+  const handleChangeRemark = (id: string, remark: string) => {
+    setSelectedItems((prev) => {
+      const item = prev[id];
+      if (!item) return prev;
+      return {
+        ...prev,
+        [id]: { ...item, remark },
+      };
+    });
   };
 
   const handleChangeQuantity = (id: string, delta: number) => {
@@ -266,6 +280,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
               quantity,
             })
           ),
+          remark: itemData.remark || null,
         };
       })
       .filter(Boolean);
@@ -358,6 +373,7 @@ export default function OrderEntry({ user }: OrderEntryProps) {
         selected: isSelected,
         quantity: selection?.quantity || 1,
         options: enrichedOptions,
+        remark: selection?.remark || "",
       };
     });
   };
@@ -377,84 +393,95 @@ export default function OrderEntry({ user }: OrderEntryProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      {/* Header Section: H1, Selectors, Inputs, and Logo */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        {" "}
-        {/* Changed items-start to items-center */}
-        {/* Left Column: H1 and form elements */}
-        <div className="flex-1 min-w-[280px] md:min-w-[350px] space-y-4">
-          <h1 className="text-2xl text-white font-bold">Create Order</h1>
-          {/* Order Type Selector */}
-          <OrderTypeSelector
-            orderTypes={orderTypes}
-            selectedOrderTypeId={selectedOrderTypeId}
-            onChange={handleOrderTypeChange}
-            currentUserRole={user?.role || null}
+    <div className="w-full px-2 sm:px-4 py-4 md:py-6">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Left Column: Order Type, Details & Food Menu */}
+        <div className="w-full lg:flex-1 space-y-6">
+          {/* Header Section: H1, Selectors, Inputs, and Logo */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Form elements */}
+            <div className="flex-1 min-w-[280px] md:min-w-[350px] space-y-4">
+              <h1 className="text-2xl text-white font-bold">Create Order</h1>
+              {/* Order Type Selector */}
+              <OrderTypeSelector
+                orderTypes={orderTypes}
+                selectedOrderTypeId={selectedOrderTypeId}
+                onChange={handleOrderTypeChange}
+                currentUserRole={user?.role || null}
+              />
+
+              {selectedOrderType?.name === "Dine In" && (
+                <DiningTableSelector
+                  tables={tables}
+                  selectedTableId={selectedTableId}
+                  setSelectedTableId={setSelectedTableId}
+                />
+              )}
+
+              {/* Conditional Rendering for Customer Name & Online Code */}
+              {(selectedOrderType?.name === "Take Away" ||
+                selectedOrderType?.name === "GrabFood" ||
+                selectedOrderType?.name === "ShopeeFood" ||
+                selectedOrderType?.name === "GoFood") && (
+                <div className="flex flex-wrap gap-4 items-start">
+                  <InputField
+                    label="Customer Name"
+                    value={customerName}
+                    onChange={setCustomerName}
+                    type="text"
+                    className="w-full sm:w-80 md:w-96 max-w-lg"
+                  />
+
+                  {(selectedOrderType?.name === "GrabFood" ||
+                    selectedOrderType?.name === "ShopeeFood" ||
+                    selectedOrderType?.name === "GoFood") && (
+                    <InputField
+                      label="Online Code"
+                      value={onlineCode}
+                      onChange={setOnlineCode}
+                      type="text"
+                      className="w-full sm:w-48 md:w-56"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+            {/* Logo */}
+            <div className="rounded-xl w-full sm:w-auto flex justify-center items-center flex-grow-0 flex-shrink-0 self-center">
+              <img
+                src={LOGO}
+                alt="Restaurant Logo"
+                className="max-h-[140px] max-w-[180px] w-auto h-auto object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Separator Line */}
+          <hr className="border-t border-gray-600" />
+
+          {/* Food Menu */}
+          <MenuItemList
+            menu={getDisplayMenu()}
+            onToggleSelect={handleToggleSelect}
+            onChangeQuantity={handleChangeQuantity}
+            onToggleOption={handleToggleOption}
+            onChangeOptionQuantity={handleChangeOptionQuantity}
+            onChangeRemark={handleChangeRemark}
           />
-
-          {selectedOrderType?.name === "Dine In" && (
-            <DiningTableSelector
-              tables={tables}
-              selectedTableId={selectedTableId}
-              setSelectedTableId={setSelectedTableId}
-            />
-          )}
-
-          {/* Conditional Rendering for Customer Name */}
-          {(selectedOrderType?.name === "Take Away" ||
-            selectedOrderType?.name === "GrabFood" ||
-            selectedOrderType?.name === "ShopeeFood" ||
-            selectedOrderType?.name === "GoFood") && (
-            <InputField
-              label="Customer Name"
-              value={customerName}
-              onChange={setCustomerName}
-              type="text"
-            />
-          )}
-
-          {/* Conditional Rendering for Online Code */}
-          {(selectedOrderType?.name === "GrabFood" ||
-            selectedOrderType?.name === "ShopeeFood" ||
-            selectedOrderType?.name === "GoFood") && (
-            <InputField
-              label="Online Code"
-              value={onlineCode}
-              onChange={setOnlineCode}
-              type="text"
-            />
-          )}
         </div>
-        {/* Right Column: Logo */}
-        <div className="rounded-xl w-full sm:w-auto flex justify-center items-center flex-grow-0 flex-shrink-0 self-center">
-          <img
-            src={LOGO}
-            alt="Restaurant Logo"
-            className="max-h-[150px] max-w-[200px] w-auto h-auto object-contain"
+
+        {/* Right Column: Order Summary & Checkout (Sticky on Desktop) */}
+        <div className="w-full lg:w-96 xl:w-[420px] lg:sticky lg:top-8 shrink-0">
+          <OrderSummary
+            selectedFoods={getDisplayMenu().filter((item) => item.selected)}
+            totalPrice={calculateTotalPrice()}
+            orderRemark={orderRemark}
+            setOrderRemark={setOrderRemark}
+            submitOrder={submitOrder}
+            currentUserRole={user?.role || null}
           />
         </div>
       </div>
-
-      {/* Separator Line */}
-      <hr className="border-t border-gray-600" />
-
-      <MenuItemList
-        menu={getDisplayMenu()}
-        onToggleSelect={handleToggleSelect}
-        onChangeQuantity={handleChangeQuantity}
-        onToggleOption={handleToggleOption}
-        onChangeOptionQuantity={handleChangeOptionQuantity}
-      />
-
-      <OrderSummary
-        selectedFoods={getDisplayMenu().filter((item) => item.selected)}
-        totalPrice={calculateTotalPrice()}
-        orderRemark={orderRemark}
-        setOrderRemark={setOrderRemark}
-        submitOrder={submitOrder}
-        currentUserRole={user?.role || null}
-      />
     </div>
   );
 }

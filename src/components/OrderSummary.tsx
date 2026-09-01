@@ -49,12 +49,12 @@ export default function OrderSummary({
     }).format(price);
 
   return (
-    <div className="mt-6 p-[2px] rounded-xl bg-[linear-gradient(159deg,_rgba(62,180,137,1)_0%,_rgba(144,238,144,1)_100%)] shadow">
+    <div className="mt-6 lg:mt-0 p-[2px] rounded-xl bg-[linear-gradient(159deg,_rgba(62,180,137,1)_0%,_rgba(144,238,144,1)_100%)] shadow">
       <div className="p-4 rounded-xl bg-gray-800 space-y-4">
         {selectedFoods.length > 0 && (
           <div className="text-white space-y-4">
             <h3 className="text-lg font-semibold text-green-300">Your Order</h3>
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
               {selectedFoods.map((food) => (
                 <div key={food.id}>
                   <div className="flex justify-between font-medium">
@@ -75,6 +75,12 @@ export default function OrderSummary({
                         </span>
                       </div>
                     ))}
+
+                  {food.remark && (
+                    <div className="ml-4 text-xs text-yellow-300 italic">
+                      Note: {food.remark}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

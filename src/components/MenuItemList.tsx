@@ -11,6 +11,15 @@ interface MenuItemListProps {
     optionId: string,
     delta: number
   ) => void;
+  onChangeRemark?: (foodId: string, remark: string) => void;
+}
+
+interface ItemSnapshot {
+  id: string;
+  wasSelected: boolean;
+  quantity: number;
+  options: { id: string; selected: boolean; quantity: number }[];
+  remark: string;
 }
 
 export default function MenuItemList({
@@ -19,20 +28,36 @@ export default function MenuItemList({
   onChangeQuantity,
   onToggleOption,
   onChangeOptionQuantity,
+  onChangeRemark,
 }: MenuItemListProps) {
   const [openOptionsId, setOpenOptionsId] = useState<string | null>(null);
   const [optionError, setOptionError] = useState<string | null>(null);
+  const [itemSnapshot, setItemSnapshot] = useState<ItemSnapshot | null>(null);
 
   const currentItem = menu.find((item) => item.id === openOptionsId);
 
   // Handler for clicking a food card
   const handleFoodClick = (item: FoodItem) => {
-    if (!item.selected) {
-      onToggleSelect(item.id);
-      setOpenOptionsId(item.id);
-    } else {
+    const wasSelected = !!item.selected;
+
+    // Capture initial state snapshot before any edits in this modal session
+    setItemSnapshot({
+      id: item.id,
+      wasSelected,
+      quantity: item.quantity || 1,
+      options: (item.options || []).map((opt) => ({
+        id: opt.id,
+        selected: !!opt.selected,
+        quantity: opt.quantity || 1,
+      })),
+      remark: item.remark || "",
+    });
+
+    if (!wasSelected) {
       onToggleSelect(item.id);
     }
+    setOptionError(null);
+    setOpenOptionsId(item.id);
   };
 
   // Helper to get the display price (first price or by orderType if needed)
@@ -41,9 +66,53 @@ export default function MenuItemList({
     return item.prices[0].price;
   };
 
+  // Handle Cancel / X button: revert to previous state without saving or remembering changes
+  const handleCancel = () => {
+    if (currentItem && itemSnapshot && itemSnapshot.id === currentItem.id) {
+      if (!itemSnapshot.wasSelected) {
+        // If this item was not in the order prior to opening the modal, remove / deselect it
+        if (currentItem.selected) {
+          onToggleSelect(currentItem.id);
+        }
+      } else {
+        // If it was already selected previously, revert all modifications made in this modal session
+        // 1. Revert item quantity
+        const qtyDiff = itemSnapshot.quantity - currentItem.quantity;
+        if (qtyDiff !== 0) {
+          onChangeQuantity(currentItem.id, qtyDiff);
+        }
+
+        // 2. Revert options selection and quantities
+        const currentOptions = (currentItem.options as UIFoodOption[]) || [];
+        itemSnapshot.options.forEach((snapOpt) => {
+          const currOpt = currentOptions.find((o) => o.id === snapOpt.id);
+          if (currOpt) {
+            if (!!currOpt.selected !== snapOpt.selected) {
+              onToggleOption(currentItem.id, snapOpt.id);
+            }
+            const currOptQty = currOpt.quantity || 1;
+            const optQtyDiff = snapOpt.quantity - currOptQty;
+            if (optQtyDiff !== 0) {
+              onChangeOptionQuantity(currentItem.id, snapOpt.id, optQtyDiff);
+            }
+          }
+        });
+
+        // 3. Revert remark
+        if ((currentItem.remark || "") !== itemSnapshot.remark) {
+          onChangeRemark?.(currentItem.id, itemSnapshot.remark);
+        }
+      }
+    }
+
+    setOptionError(null);
+    setOpenOptionsId(null);
+    setItemSnapshot(null);
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {menu.map(
           (item) =>
             getDisplayPrice(item) > 0 && (
@@ -54,7 +123,7 @@ export default function MenuItemList({
                 <div
                   onClick={() => handleFoodClick(item)}
                   className={`cursor-pointer rounded-lg p-3 shadow-sm flex flex-col h-full transition-shadow bg-gray-800  
-                ${item.selected ? "ring-4 ring-lime-400" : "hover:shadow-md"}
+                ${item.selected ? "ring-7 ring-blue-400" : "hover:shadow-md"}
               `}
                 >
                   {/* Image */}
@@ -84,126 +153,197 @@ export default function MenuItemList({
       </div>
 
       {/* Options & Quantity Modal */}
-      {openOptionsId && currentItem && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border-2 border-green-400 relative">
-            <h3 className="text-lg font-bold text-white mb-4">
-              {currentItem.name}
-            </h3>
-            {/* Quantity Controls */}
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm text-green-300">Quantity:</span>
+      {openOptionsId && currentItem && (() => {
+        const options = (currentItem.options as UIFoodOption[]) || [];
+        const isSambal = (name: string) =>
+          name.trim().toLowerCase().includes("sambal");
+        const nonSambalOptions = options.filter((opt) => !isSambal(opt.name));
+        const sambalOptions = options.filter((opt) => isSambal(opt.name));
+
+        const renderOptionRow = (opt: UIFoodOption) => (
+          <div
+            key={opt.id}
+            className="flex justify-between items-center text-sm"
+          >
+            <label className="flex items-center space-x-3 text-white cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!opt.selected}
+                onChange={() => onToggleOption(currentItem.id, opt.id)}
+                className="w-6 h-6 accent-green-400 rounded focus:ring-2 focus:ring-green-400 transition-all duration-150"
+                style={{ minWidth: "1.5rem", minHeight: "1.5rem" }}
+              />
+              <span className="text-base">
+                {opt.name} (+Rp{opt.extraPrice})
+              </span>
+            </label>
+            {opt.selected && (
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => onChangeQuantity(currentItem.id, -1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition"
+                  onClick={() =>
+                    onChangeOptionQuantity(currentItem.id, opt.id, -1)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition cursor-pointer"
                   aria-label="Decrease"
                   type="button"
                 >
                   –
                 </button>
                 <span className="text-white text-lg min-w-[2rem] text-center">
-                  {currentItem.quantity}
+                  {opt.quantity ?? 1}
                 </span>
                 <button
-                  onClick={() => onChangeQuantity(currentItem.id, 1)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition"
+                  onClick={() =>
+                    onChangeOptionQuantity(currentItem.id, opt.id, 1)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition cursor-pointer"
                   aria-label="Increase"
                   type="button"
                 >
                   +
                 </button>
               </div>
-            </div>
-            {/* Options */}
-            <div className="space-y-3">
-              {(currentItem.options as UIFoodOption[]).map((opt) => (
-                <div
-                  key={opt.id}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <label className="flex items-center space-x-3 text-white cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!!opt.selected}
-                      onChange={() => onToggleOption(currentItem.id, opt.id)}
-                      className="w-6 h-6 accent-green-400 rounded focus:ring-2 focus:ring-green-400 transition-all duration-150"
-                      style={{ minWidth: "1.5rem", minHeight: "1.5rem" }}
-                    />
-                    <span className="text-base">
-                      {opt.name} (+Rp{opt.extraPrice})
-                    </span>
-                  </label>
-                  {opt.selected && (
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() =>
-                          onChangeOptionQuantity(currentItem.id, opt.id, -1)
-                        }
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition"
-                        aria-label="Decrease"
-                        type="button"
-                      >
-                        –
-                      </button>
-                      <span className="text-white text-lg min-w-[2rem] text-center">
-                        {opt.quantity ?? 1}
-                      </span>
-                      <button
-                        onClick={() =>
-                          onChangeOptionQuantity(currentItem.id, opt.id, 1)
-                        }
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 text-black text-lg font-bold shadow hover:scale-110 transition"
-                        aria-label="Increase"
-                        type="button"
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button
-              className="absolute top-2 right-2 text-green-400 hover:text-white text-4xl p-2"
-              onClick={() => {
-                if (openOptionsId) {
-                  onToggleSelect(openOptionsId); // Deselect the food
-                }
-                setOpenOptionsId(null); // Close the modal
-                setOptionError(null); // Clear any validation errors
-              }}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <button
-              className="cursor-pointer mt-6 w-full px-4 py-2 rounded bg-green-300 text-black font-bold hover:bg-green-400"
-              onClick={() => {
-                const options = currentItem.options as UIFoodOption[];
-                const hasOptions = options.length > 0;
-                const hasSelectedOption = options.some((opt) => opt.selected);
-
-                if (hasOptions && !hasSelectedOption) {
-                  setOptionError("Please select at least one option.");
-                  return;
-                }
-
-                setOpenOptionsId(null);
-                setOptionError(null);
-                setOpenOptionsId(null);
-              }}
-            >
-              Submit
-            </button>
-            {optionError && (
-              <p className="text-red-400 text-sm mt-2 text-center">
-                {optionError}
-              </p>
             )}
           </div>
-        </div>
-      )}
+        );
+
+        const handleSubmit = () => {
+          if (nonSambalOptions.length > 0) {
+            const nonSambalTotalQty = nonSambalOptions.reduce(
+              (sum, opt) => sum + (opt.selected ? (opt.quantity ?? 1) : 0),
+              0
+            );
+
+            if (nonSambalTotalQty !== currentItem.quantity) {
+              setOptionError(
+                `Total option quantity (${nonSambalTotalQty}) must be equal to food quantity (${currentItem.quantity}).`
+              );
+              return;
+            }
+          }
+
+          if (sambalOptions.length > 0) {
+            const sambalTotalQty = sambalOptions.reduce(
+              (sum, opt) => sum + (opt.selected ? (opt.quantity ?? 1) : 0),
+              0
+            );
+
+            if (sambalTotalQty !== currentItem.quantity) {
+              setOptionError(
+                `Total sambal quantity (${sambalTotalQty}) must be equal to food quantity (${currentItem.quantity}).`
+              );
+              return;
+            }
+          }
+
+          setOptionError(null);
+          setOpenOptionsId(null);
+          setItemSnapshot(null);
+        };
+
+        return (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4">
+            <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-green-400 shadow-2xl relative">
+              {/* Close / Cancel X Button */}
+              <button
+                type="button"
+                className="absolute top-3.5 right-3.5 text-gray-400 hover:text-white hover:bg-gray-700/80 rounded-full w-8 h-8 flex items-center justify-center text-2xl transition cursor-pointer"
+                onClick={handleCancel}
+                aria-label="Cancel and Close"
+              >
+                ×
+              </button>
+
+              <h3 className="text-xl font-bold text-white mb-4 pr-8">
+                {currentItem.name}
+              </h3>
+
+              {/* Quantity Controls */}
+              <div className="flex justify-between items-center mb-4 bg-gray-900/60 p-3 rounded-xl border border-gray-700">
+                <span className="text-sm font-semibold text-green-300">Quantity:</span>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => onChangeQuantity(currentItem.id, -1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 hover:bg-green-400 text-black text-lg font-bold shadow hover:scale-105 active:scale-95 transition cursor-pointer"
+                    aria-label="Decrease"
+                    type="button"
+                  >
+                    –
+                  </button>
+                  <span className="text-white text-lg font-bold min-w-[2rem] text-center">
+                    {currentItem.quantity}
+                  </span>
+                  <button
+                    onClick={() => onChangeQuantity(currentItem.id, 1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-green-300 hover:bg-green-400 text-black text-lg font-bold shadow hover:scale-105 active:scale-95 transition cursor-pointer"
+                    aria-label="Increase"
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-3 max-h-70 overflow-y-auto pr-1">
+                {nonSambalOptions.map(renderOptionRow)}
+
+                {nonSambalOptions.length > 0 && sambalOptions.length > 0 && (
+                  <hr className="border-t border-gray-700 my-3" />
+                )}
+
+                {sambalOptions.map(renderOptionRow)}
+              </div>
+
+              {/* Remark */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-green-300 mb-1">
+                  Remark:
+                </label>
+                <input
+                  type="text"
+                  value={currentItem.remark || ""}
+                  onChange={(e) =>
+                    onChangeRemark?.(currentItem.id, e.target.value)
+                  }
+                  placeholder="e.g. nasi banyak, sambal banyak..."
+                  className="w-full bg-gray-900/80 text-white border border-gray-700 focus:border-green-400 focus:ring-1 focus:ring-green-400 rounded-xl p-2.5 text-sm focus:outline-none transition"
+                />
+              </div>
+
+              <div className="mt-6 flex flex-col space-y-2">
+                <button
+                  type="button"
+                  className="cursor-pointer w-full py-2.5 rounded-xl bg-gradient-to-r from-green-400 to-emerald-400 text-slate-950 font-bold hover:from-green-300 hover:to-emerald-300 shadow-md transition"
+                  onClick={handleSubmit}
+                >
+                  Add to Order
+                </button>
+                <button
+                  type="button"
+                  className="cursor-pointer w-full py-2 rounded-xl border border-red-500/50 text-red-400 hover:bg-red-500/10 font-medium text-sm transition"
+                  onClick={() => {
+                    if (openOptionsId) {
+                      onToggleSelect(openOptionsId); // Deselect the food item
+                    }
+                    setOpenOptionsId(null);
+                    setOptionError(null);
+                    setItemSnapshot(null);
+                  }}
+                >
+                  Remove from Order
+                </button>
+              </div>
+
+              {optionError && (
+                <div className="mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium">
+                  {optionError}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

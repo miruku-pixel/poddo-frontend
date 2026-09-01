@@ -28,6 +28,7 @@ const mapOrderResponse = (raw: RawOrder): Order => {
           foodCategoryName: item.food?.foodCategory?.name ?? "Other",
           quantity: item.quantity,
           status: item.status,
+          remark: item.remark,
           options: Array.isArray(item.options)
             ? item.options.map((opt: RawOption) => ({
                 id: opt.id,

@@ -62,4 +62,5 @@ export type FoodItem = APIFoodItem & {
   selected: boolean;
   quantity: number;
   options: UIFoodOption[];
+  remark?: string;
 };

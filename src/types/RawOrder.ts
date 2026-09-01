@@ -36,6 +36,7 @@ export type RawOrderItem = {
   totalPrice?: number;
   options?: RawOption[];
   status: "ACTIVE" | "CANCELED";
+  remark?: string | null;
 };
 
 export type RawOption = {
