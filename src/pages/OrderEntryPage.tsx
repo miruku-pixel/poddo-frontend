@@ -8,6 +8,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { User } from "../types/User";
 import { DiningTable } from "../types/DiningTable";
 import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
+import { sortFoodItems } from "../utils/foodSort";
 import LOGO from "../assets/LOGO_PODDO.webp";
 
 // Simplified InputField component
@@ -67,20 +68,22 @@ export default function OrderEntry({ user }: OrderEntryProps) {
     async (outletId: string, orderTypeId: string) => {
       // Define processFoods inside useCallback to avoid dependency warning
       const processFoods = (foods: APIFoodItem[]): FoodItem[] => {
-        return foods.map(
-          (f): FoodItem => ({
-            ...f,
-            selected: false,
-            quantity: 1,
-            options:
-              f.options?.map(
-                (opt): UIFoodOption => ({
-                  ...opt,
-                  selected: false,
-                  quantity: 1,
-                })
-              ) ?? [],
-          })
+        return sortFoodItems(
+          foods.map(
+            (f): FoodItem => ({
+              ...f,
+              selected: false,
+              quantity: 1,
+              options:
+                f.options?.map(
+                  (opt): UIFoodOption => ({
+                    ...opt,
+                    selected: false,
+                    quantity: 1,
+                  })
+                ) ?? [],
+            })
+          )
         );
       };
 

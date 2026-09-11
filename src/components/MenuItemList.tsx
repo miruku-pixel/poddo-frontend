@@ -1,5 +1,6 @@
 import { FoodItem, UIFoodOption } from "../types/Food";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { sortFoodItems } from "../utils/foodSort";
 
 interface MenuItemListProps {
   menu: FoodItem[];
@@ -110,10 +111,12 @@ export default function MenuItemList({
     setItemSnapshot(null);
   };
 
+  const sortedMenu = useMemo(() => sortFoodItems(menu), [menu]);
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {menu.map(
+        {sortedMenu.map(
           (item) =>
             getDisplayPrice(item) > 0 && (
               <div

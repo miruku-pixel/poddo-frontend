@@ -5,6 +5,7 @@ import MenuItemList from "../components/MenuItemList";
 import { Order } from "../types/Order";
 import { RawOrder, RawOrderItem, RawOption } from "../types/RawOrder";
 import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
+import { sortFoodItems } from "../utils/foodSort";
 import { OrderTypes } from "../types/OrderType";
 import { User } from "../types/User";
 import SuccessMessage from "../components/SuccessMessage";
@@ -73,20 +74,22 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
     async (outletId: string, orderTypeId: string) => {
       // Define processFoods inside useCallback to avoid dependency warning
       const processFoods = (foods: APIFoodItem[]): FoodItem[] => {
-        return foods.map(
-          (f): FoodItem => ({
-            ...f,
-            selected: false,
-            quantity: 1,
-            options:
-              f.options?.map(
-                (opt): UIFoodOption => ({
-                  ...opt,
-                  selected: false,
-                  quantity: 1,
-                })
-              ) ?? [],
-          })
+        return sortFoodItems(
+          foods.map(
+            (f): FoodItem => ({
+              ...f,
+              selected: false,
+              quantity: 1,
+              options:
+                f.options?.map(
+                  (opt): UIFoodOption => ({
+                    ...opt,
+                    selected: false,
+                    quantity: 1,
+                  })
+                ) ?? [],
+            })
+          )
         );
       };
 
