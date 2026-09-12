@@ -33,6 +33,7 @@ interface DailyReportEntry {
   transferTibanIndah: number;
   transferKdaBatamCentre: number;
   transferMitraRaya: number;
+  transferAirmadidi: number;
   closingBalance: number;
 
 
@@ -57,16 +58,17 @@ const transferColumnVisibility: TransferColumnVisibilityMap = {
   "Xpress-MitraRaya": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferKdaBatamCentre", "transferSeraya"],
   "Xpress-KDABatamCentre": ["transferNagoya", "transferBengkong", "transferTibanIndah", "transferSeraya", "transferMitraRaya"],
   "Xpress-TibanIndah": ["transferNagoya", "transferBengkong", "transferSeraya", "transferKdaBatamCentre", "transferMitraRaya"],
-  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Xpress-Maumbi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Xpress-Tuminting": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transfer17Agustus", "transferPerkamil", "transferTateli"],
-  "Xpress-17Agustus": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transferPerkamil", "transferTateli"],
-  "Xpress-Perkamil": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferTateli"],
-  "Xpress-Tateli": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil"],
+  "Podomoro-Kleak": ["transferMalalayang", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Podomoro-Malalayang": ["transferKleak", "transferPaniki", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Podomoro-Mantos": ["transferKleak", "transferPaniki", "transferItc", "transferMalalayang", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-ITC": ["transferKleak", "transferMalalayang", "transferPaniki", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-Paniki": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-Maumbi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-Tuminting": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transfer17Agustus", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-17Agustus": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transferPerkamil", "transferTateli", "transferAirmadidi"],
+  "Xpress-Perkamil": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferTateli", "transferAirmadidi"],
+  "Xpress-Tateli": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferAirmadidi"],
+  "Xpress-Airmadidi": ["transferKleak", "transferMalalayang", "transferItc", "transferMantos", "transferPaniki", "transferMaumbi", "transferTuminting", "transfer17Agustus", "transferPerkamil", "transferTateli"],
   // Add more outlets here as they go live
   // "Another-Outlet": ["transferTypeX", "transferTypeY"],
 };
@@ -575,6 +577,9 @@ export default function MonthlyInventoryReport({
                   {currentOutletTransferColumns.includes("transferTateli") && (
                     <th className="py-1 px-4 text-center">Transfer (Tateli)</th>
                   )}
+                  {currentOutletTransferColumns.includes("transferAirmadidi") && (
+                    <th className="py-1 px-4 text-center">Transfer (Airmadidi)</th>
+                  )}
                   {/* End Conditionally rendered Transfer Headers */}
                   <th className="py-1 px-4 text-center">Akhir</th>
                 </tr>
@@ -708,6 +713,11 @@ export default function MonthlyInventoryReport({
                       {currentOutletTransferColumns.includes("transferTateli") && (
                         <td className="py-1 px-4 text-center">
                           {row.transferTateli}
+                        </td>
+                      )}
+                      {currentOutletTransferColumns.includes("transferAirmadidi") && (
+                        <td className="py-1 px-4 text-center">
+                          {row.transferAirmadidi}
                         </td>
                       )}
                       {/* End Conditionally rendered Transfer Data Cells */}
