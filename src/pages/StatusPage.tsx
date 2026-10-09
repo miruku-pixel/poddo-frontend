@@ -49,6 +49,8 @@ const mapOrderResponse = (raw: RawOrder): Order => {
     discount: raw.discount ?? 0,
     total: raw.total ?? 0,
     orderType: raw.orderType ?? { id: "", name: "Unknown" },
+    paidAt: raw.Billing?.paidAt || raw.paidAt || raw.createdAt || undefined,
+    createdAt: raw.createdAt || undefined,
   };
 };
 

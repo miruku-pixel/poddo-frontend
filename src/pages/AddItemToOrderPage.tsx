@@ -4,7 +4,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import MenuItemList from "../components/MenuItemList";
 import { Order } from "../types/Order";
 import { RawOrder, RawOrderItem, RawOption } from "../types/RawOrder";
-import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
+import { FoodItem, APIFoodItem, UIFoodOption, OrderCartSet } from "../types/Food";
 import { sortFoodItems } from "../utils/foodSort";
 import { OrderTypes } from "../types/OrderType";
 import { User } from "../types/User";
@@ -30,6 +30,7 @@ function mapOrderResponse(raw: RawOrder): Order {
           quantity: item.quantity,
           unitPrice: item.unitPrice ?? 0,
           totalPrice: item.totalPrice ?? 0,
+          remark: item.remark || null,
           options: Array.isArray(item.options)
             ? item.options.map((opt: RawOption) => ({
                 id: opt.id,
@@ -60,19 +61,12 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
 
-  const [selectedItems, setSelectedItems] = useState<{
-    [id: string]: {
-      quantity: number;
-      selectedOptions: {
-        [optionId: string]: number;
-      };
-      remark?: string;
-    };
-  }>({});
+  // Set-based cart state for new items being added
+  const [cartSets, setCartSets] = useState<OrderCartSet[]>([]);
+  const [editingSet, setEditingSet] = useState<OrderCartSet | null>(null);
 
   const fetchMenu = useCallback(
     async (outletId: string, orderTypeId: string) => {
-      // Define processFoods inside useCallback to avoid dependency warning
       const processFoods = (foods: APIFoodItem[]): FoodItem[] => {
         return sortFoodItems(
           foods.map(
@@ -100,7 +94,6 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
           ),
         ]);
         const foods: APIFoodItem[] = await foodsRes.json();
-
         setMenu(processFoods(foods));
       } catch (error) {
         console.error("Fetching failed:", error);
@@ -126,7 +119,6 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         const data = await response.json();
         setOrder(mapOrderResponse(data));
       } catch (err) {
-        // Catch as any for simpler error handling, or unknown and check instanceof Error
         setError("Failed to fetch order. Please try again.");
         console.error(err);
       } finally {
@@ -139,7 +131,7 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
 
   useEffect(() => {
     if (orderSubmitted) {
-      const timer = setTimeout(() => setOrderSubmitted(false), 3000); // 3 sec
+      const timer = setTimeout(() => setOrderSubmitted(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [orderSubmitted]);
@@ -168,136 +160,81 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
   if (!order)
     return <div className="text-white text-center">Order not found.</div>;
 
-  const handleToggleSelect = (id: string) => {
-    setSelectedItems((prev) =>
-      id in prev
-        ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
-        : {
-            ...prev,
-            [id]: { quantity: 1, selectedOptions: {}, remark: "" },
-          }
-    );
+  const isSameSetConfiguration = (a: OrderCartSet, b: OrderCartSet): boolean => {
+    const sameFood = a.foodId === b.foodId;
+    const sameCut = (a.selectedCut?.id || null) === (b.selectedCut?.id || null);
+    const sameSambal = (a.selectedSambal?.id || null) === (b.selectedSambal?.id || null);
+    const sameRemark =
+      (a.remark || "").trim().toLowerCase() === (b.remark || "").trim().toLowerCase();
+
+    return sameFood && sameCut && sameSambal && sameRemark;
   };
 
-  const handleChangeRemark = (id: string, remark: string) => {
-    setSelectedItems((prev) => {
-      const item = prev[id];
-      if (!item) return prev;
-      return {
-        ...prev,
-        [id]: { ...item, remark },
-      };
-    });
-  };
-
-  const handleChangeQuantity = (id: string, delta: number) => {
-    setSelectedItems((prev) => {
-      const item = prev[id];
-      if (!item) return prev;
-      const newQty = item.quantity + delta;
-      if (newQty <= 0) {
-        const newItems = { ...prev };
-        delete newItems[id];
-        return newItems;
-      }
-      return {
-        ...prev,
-        [id]: { ...item, quantity: newQty },
-      };
-    });
-  };
-
-  const handleToggleOption = (foodId: string, optionId: string) => {
-    setSelectedItems((prev) => {
-      const item = prev[foodId];
-      if (!item) return prev;
-
-      const optionQty = item.selectedOptions[optionId] ?? 0;
-
-      const newOptions = { ...item.selectedOptions };
-      if (optionQty > 0) {
-        delete newOptions[optionId];
-      } else {
-        newOptions[optionId] = 1;
-      }
-
-      return {
-        ...prev,
-        [foodId]: { ...item, selectedOptions: newOptions },
-      };
-    });
-  };
-
-  const handleChangeOptionQuantity = (
-    foodId: string,
-    optionId: string,
-    delta: number
+  const handleSaveSet = (
+    incomingSet: OrderCartSet,
+    editingTempId?: string | null
   ) => {
-    setSelectedItems((prev) => {
-      const item = prev[foodId];
-      if (!item) return prev;
-
-      const currentQty = item.selectedOptions[optionId] ?? 0;
-      const newQty = currentQty + delta;
-
-      const newOptions = { ...item.selectedOptions };
-      if (newQty <= 0) {
-        delete newOptions[optionId];
-      } else {
-        newOptions[optionId] = newQty;
+    setCartSets((prevSets) => {
+      if (editingTempId) {
+        return prevSets.map((s) =>
+          s.tempId === editingTempId ? { ...incomingSet, tempId: editingTempId } : s
+        );
       }
 
-      return {
-        ...prev,
-        [foodId]: { ...item, selectedOptions: newOptions },
-      };
+      const matchIndex = prevSets.findIndex((s) =>
+        isSameSetConfiguration(s, incomingSet)
+      );
+
+      if (matchIndex !== -1) {
+        const updated = [...prevSets];
+        updated[matchIndex] = {
+          ...updated[matchIndex],
+          quantity: updated[matchIndex].quantity + incomingSet.quantity,
+        };
+        return updated;
+      }
+
+      return [...prevSets, incomingSet];
     });
+
+    setEditingSet(null);
   };
 
-  const getDisplayMenu = () => {
-    return menu.map((item) => {
-      const selection = selectedItems[item.id];
-      const isSelected = !!selection;
-
-      const enrichedOptions = (item.options ?? []).map((opt) => ({
-        ...opt,
-        selected: selection?.selectedOptions[opt.id] > 0,
-        quantity: selection?.selectedOptions[opt.id] || 1,
-      }));
-
-      return {
-        ...item,
-        selected: isSelected,
-        quantity: selection?.quantity || 1,
-        options: enrichedOptions,
-        remark: selection?.remark || "",
-      };
-    });
+  const handleDeleteSet = (tempId: string) => {
+    setCartSets((prev) => prev.filter((s) => s.tempId !== tempId));
   };
 
   const buildAddItemsPayload = () => {
     return {
-      items: Object.entries(selectedItems).map(([foodId, itemData]) => ({
-        foodId,
-        quantity: itemData.quantity,
-        options: Object.entries(itemData.selectedOptions).map(
-          ([optionId, quantity]) => ({
-            optionId,
-            quantity,
-          })
-        ),
-        remark: itemData.remark || null,
-      })),
+      items: cartSets.map((set) => {
+        const options: { optionId: string; quantity: number }[] = [];
+        if (set.selectedCut) {
+          options.push({ optionId: set.selectedCut.id, quantity: set.quantity });
+        }
+        if (set.selectedSambal) {
+          options.push({ optionId: set.selectedSambal.id, quantity: set.quantity });
+        }
+        (set.otherOptions || []).forEach((opt) => {
+          options.push({ optionId: opt.id, quantity: (opt.quantity || 1) * set.quantity });
+        });
+
+        return {
+          foodId: set.foodId,
+          quantity: set.quantity,
+          options,
+          remark: set.remark || null,
+        };
+      }),
     };
   };
 
   const handleUpdateOrder = async () => {
     if (!orderId) return;
 
-    setIsUpdatingOrder(true); // Start loading animation
+    setIsUpdatingOrder(true);
 
     try {
-      const payload = buildAddItemsPayload(); // This can now throw errors if validation fails
+      const payload = buildAddItemsPayload();
 
       if (payload.items.length === 0) {
         alert("No new items selected to add.");
@@ -315,29 +252,24 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Failed to update order:", errorData);
-        // Using alert here, consider a custom modal for better UX
         alert(
           "Failed to add items to order: " +
             (errorData.error || errorData.message || "Unknown error")
         );
-        return; // Don't redirect on failure
+        return;
       }
 
       navigate("/status");
-
-      // On successful update, navigate to status page
     } catch (error) {
-      // Catch validation errors from buildAddItemsPayload or fetch errors
       console.error("Error updating order:", error);
-      // Display the specific error message from validation or fetch
       alert("An unexpected error occurred while updating the order.");
     } finally {
-      setIsUpdatingOrder(false); // Stop loading animation
+      setIsUpdatingOrder(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 bg-gray-800  min-h-screen text-white rounded-xl border border-green-400 shadow">
+    <div className="max-w-4xl mx-auto px-4 py-8 bg-gray-800 min-h-screen text-white rounded-xl border border-green-400 shadow">
       {orderSubmitted && <SuccessMessage orderNumber={order.orderNumber} />}
       <h1 className="text-xl font-bold text-green-400 mb-4">
         Order Number:{" "}
@@ -359,100 +291,109 @@ export default function AddItemToOrderPage({ user }: AddItemProps) {
         </div>
       </div>
 
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2 text-green-300">
-          Current Items:
+      {/* Existing Items in Order */}
+      <div className="mb-6 p-4 bg-gray-900/70 rounded-xl border border-gray-700">
+        <h2 className="text-base font-semibold mb-2 text-green-300">
+          Already Ordered Items:
         </h2>
-        {order.items.map((item) => (
-          <div key={item.id} className="mb-2">
-            <div>
-              - {item.foodName} (Qty: {item.quantity})
+        <div className="space-y-2">
+          {order.items.map((item) => (
+            <div key={item.id} className="text-sm">
+              <div className="font-medium">
+                • {item.foodName} (Qty: {item.quantity})
+              </div>
+              {item.options.map((opt) => (
+                <div key={opt.id} className="ml-4 text-xs text-gray-400">
+                  + {opt.name} (Qty: {opt.quantity})
+                </div>
+              ))}
+              {item.remark && (
+                <div className="ml-4 text-xs text-yellow-300 italic">
+                  Note: {item.remark}
+                </div>
+              )}
             </div>
-            {item.options.map((opt) => (
-              <div key={opt.id} className="ml-4 text-sm text-gray-300">
-                + {opt.name} (Qty: {opt.quantity})
+          ))}
+        </div>
+      </div>
+
+      {/* Newly Selected Sets to Add */}
+      {cartSets.length > 0 && (
+        <div className="mb-6 p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/50">
+          <h2 className="text-base font-semibold mb-3 text-emerald-300">
+            New Items to Add ({cartSets.length} {cartSets.length === 1 ? "Set" : "Sets"}):
+          </h2>
+          <div className="space-y-2">
+            {cartSets.map((set, idx) => (
+              <div
+                key={set.tempId}
+                className="flex items-center justify-between p-2.5 bg-gray-900/90 rounded-lg border border-gray-700 text-sm"
+              >
+                <div>
+                  <span className="font-bold text-emerald-400 mr-2">#{idx + 1}</span>
+                  <span className="font-semibold text-white mr-2">{set.foodName}</span>
+                  <span className="text-emerald-300 font-bold">x{set.quantity}</span>
+                  <div className="flex flex-wrap gap-1 mt-1 text-xs">
+                    {set.selectedCut && (
+                      <span className="bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40">
+                        Varian: {set.selectedCut.name}
+                      </span>
+                    )}
+                    {set.selectedSambal && (
+                      <span className="bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/40">
+                        Sambal: {set.selectedSambal.name}
+                      </span>
+                    )}
+                  </div>
+                  {set.remark && (
+                    <div className="text-xs text-yellow-300 italic mt-0.5">
+                      Note: {set.remark}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteSet(set.tempId)}
+                  className="text-xs px-2.5 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30 transition cursor-pointer font-medium"
+                >
+                  Remove
+                </button>
               </div>
             ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      <ul className="mt-4 space-y-2 mb-6">
-        {getDisplayMenu()
-          .filter((item) => item.selected)
-          .map((item) => (
-            <li key={item.id} className="text-yellow-300">
-              - {item.name} (Qty: {item.quantity})
-              {item.options.length > 0 && (
-                <ul className="ml-4 text-sm text-yellow-300">
-                  {item.options
-                    .filter((opt) => opt.selected)
-                    .map((opt) => (
-                      <li key={opt.id}>
-                        + {opt.name} (Qty: {opt.quantity})
-                      </li>
-                    ))}
-                </ul>
-              )}
-              {item.remark && (
-                <div className="ml-4 text-xs text-gray-300 italic">
-                  Remark: {item.remark}
-                </div>
-              )}
-            </li>
-          ))}
-      </ul>
-
+      {/* Menu Grid */}
+      <h2 className="text-lg font-bold text-white mb-3">Add Menu Items:</h2>
       <MenuItemList
-        menu={getDisplayMenu()}
-        onToggleSelect={handleToggleSelect}
-        onChangeQuantity={handleChangeQuantity}
-        onToggleOption={handleToggleOption}
-        onChangeOptionQuantity={handleChangeOptionQuantity}
-        onChangeRemark={handleChangeRemark}
+        menu={menu}
+        cartSets={cartSets}
+        onSaveSet={handleSaveSet}
+        editingSet={editingSet}
+        onCloseEdit={() => setEditingSet(null)}
       />
+
       <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6 pt-4 border-t border-green-400">
         <button
           type="button"
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded w-full sm:w-auto transition duration-200"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-xl w-full sm:w-auto transition duration-200 font-medium cursor-pointer"
           onClick={() => window.history.back()}
-          disabled={loading || isUpdatingOrder} // Disable if initial loading or submitting
+          disabled={loading || isUpdatingOrder}
         >
           Cancel
         </button>
         <button
           onClick={handleUpdateOrder}
-          disabled={isUpdatingOrder} // Disable if currently updating
-          className={`bg-green-400 hover:bg-green-500 text-black font-bold px-4 py-2 rounded w-full sm:w-auto transition duration-200 flex items-center justify-center ${
-            isUpdatingOrder ? "opacity-50 cursor-not-allowed" : ""
+          disabled={isUpdatingOrder || cartSets.length === 0}
+          className={`bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-300 hover:to-emerald-300 text-slate-950 font-bold px-6 py-2.5 rounded-xl w-full sm:w-auto transition duration-200 flex items-center justify-center cursor-pointer ${
+            isUpdatingOrder || cartSets.length === 0 ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          {isUpdatingOrder ? (
-            <svg
-              className="animate-spin h-5 w-5 text-black" // Spinner for dark text
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          ) : (
-            "Update Order"
-          )}
+          {isUpdatingOrder ? "Updating..." : `Add ${cartSets.length} Set(s) to Order`}
         </button>
       </div>
     </div>
   );
 }
+

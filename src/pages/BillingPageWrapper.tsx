@@ -25,6 +25,7 @@ function mapOrderResponse(raw: RawOrder): Order {
           unitPrice: item.unitPrice ?? 0,
           totalPrice: item.totalPrice ?? 0,
           status: item.status,
+          remark: item.remark || null,
           options: Array.isArray(item.options)
             ? item.options.map((opt: RawOption) => ({
                 id: opt.id,

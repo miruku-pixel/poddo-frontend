@@ -23,6 +23,12 @@ export type RawOrder = {
   discount?: number;
   total?: number;
   orderTypeDiscountPercentage?: number | null; // Percentage discount for the order type
+  paidAt?: string;
+  createdAt?: string;
+  Billing?: {
+    paidAt?: string;
+    receiptNumber?: string;
+  } | null;
 };
 
 export type RawOrderItem = {

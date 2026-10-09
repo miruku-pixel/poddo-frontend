@@ -39,4 +39,6 @@ export interface Order {
   total: number;
   orderType?: { id: string; name: string };
   orderTypeDiscountPercentage?: number; // Percentage discount for the order type
+  paidAt?: string;
+  createdAt?: string;
 }

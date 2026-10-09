@@ -72,10 +72,18 @@ export default function Receipt({ order, billing }: ReceiptProps) {
     receiptText += "--------------------------------\n";
     // Filter order items to only include those with quantity > 0
     order.items
-      .filter((item) => item.quantity > 0)
+      .filter((item) => item.quantity > 0 && item.status !== "CANCELED")
       .forEach((item) => {
         receiptText += `${item.foodName}\n`;
         receiptText += `x${item.quantity}   @${item.unitPrice}   ${formatRupiah(item.totalPrice)}\n`;
+
+        const activeOptions = (item.options || []).filter(
+          (opt) => opt.quantity > 0 && opt.status !== "CANCELED"
+        );
+        if (activeOptions.length > 0) {
+          const optionsText = activeOptions.map((opt) => opt.name).join(", ");
+          receiptText += `  • ${optionsText}\n`;
+        }
       });
 
     receiptText += "--------------------------------\n";
@@ -187,40 +195,21 @@ export default function Receipt({ order, billing }: ReceiptProps) {
         <div className="mb-2 font-mono"> {order.waiterName || "-"}</div>{" "}
         <div className="my-4 border-b border-green-700" />{" "}
         <h3 className="text-lg font-semibold mb-2">Items:</h3>
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           {order.items.map(
             (item, idx) =>
-              // Only render item if quantity is not 0
               item.quantity !== 0 && (
-                <div key={idx} className="mb-1">
-                  <div className="flex justify-between">
+                <div key={idx} className="p-2 bg-gray-900/50 rounded-lg border border-gray-700/50">
+                  <div className="flex justify-between font-medium">
                     <span>
                       {item.foodName} x{item.quantity}
                     </span>
-                    <span>{formatRupiah(item.totalPrice)}</span>{" "}
-                    {/* Item total price from order item */}
+                    <span>{formatRupiah(item.totalPrice)}</span>
                   </div>
                   {item.options.length > 0 && (
-                    <ul className="ml-4 text-sm text-gray-300">
-                      {" "}
-                      {/* Added text-gray-300 for options */}
-                      {item.options
-                        .filter((opt) => opt.quantity !== 0)
-                        .map(
-                          (
-                            opt,
-                            i // Filter options by quantity
-                          ) => (
-                            <li key={i} className="flex justify-between">
-                              <span>
-                                - {opt.name} x{opt.quantity}
-                              </span>
-                              <span>{formatRupiah(opt.totalPrice)}</span>{" "}
-                              {/* Option total price from order item option */}
-                            </li>
-                          )
-                        )}
-                    </ul>
+                    <div className="ml-2 text-xs text-emerald-300 font-mono mt-0.5">
+                      • {item.options.filter((opt) => opt.quantity !== 0 && opt.status !== "CANCELED").map((opt) => opt.name).join(", ")}
+                    </div>
                   )}
                 </div>
               )

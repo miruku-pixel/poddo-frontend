@@ -64,3 +64,24 @@ export type FoodItem = APIFoodItem & {
   options: UIFoodOption[];
   remark?: string;
 };
+
+/** Cart line item representing a configured set (food + cut + sambal + options + remark) */
+export interface OrderCartOption {
+  id: string;
+  name: string;
+  extraPrice: number;
+  quantity?: number;
+}
+
+export interface OrderCartSet {
+  tempId: string;
+  foodId: string;
+  foodName: string;
+  foodPrice: number;
+  quantity: number;
+  selectedCut?: OrderCartOption | null;
+  selectedSambal?: OrderCartOption | null;
+  otherOptions?: OrderCartOption[];
+  remark?: string;
+}
+

@@ -7,7 +7,7 @@ import OrderTypeSelector, { OrderType } from "../components/OrderTypeSelector";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { User } from "../types/User";
 import { DiningTable } from "../types/DiningTable";
-import { FoodItem, APIFoodItem, UIFoodOption } from "../types/Food";
+import { FoodItem, APIFoodItem, UIFoodOption, OrderCartSet } from "../types/Food";
 import { sortFoodItems } from "../utils/foodSort";
 import LOGO from "../assets/LOGO_PODDO.webp";
 
@@ -32,11 +32,11 @@ function InputField({
       </label>
       <div className="relative">
         <input
-          type={type} // Use the provided type directly
+          type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-gray-800 text-white border border-green-300 rounded p-2"
-          placeholder={label} // Use label as placeholder
+          placeholder={label}
         />
       </div>
     </div>
@@ -63,10 +63,12 @@ export default function OrderEntry({ user }: OrderEntryProps) {
   const [customerName, setCustomerName] = useState<string>("");
   const [onlineCode, setOnlineCode] = useState<string>("");
 
-  // Then define fetchMenuAndTables
+  // Set-based Cart State
+  const [cartSets, setCartSets] = useState<OrderCartSet[]>([]);
+  const [editingSet, setEditingSet] = useState<OrderCartSet | null>(null);
+
   const fetchMenuAndTables = useCallback(
     async (outletId: string, orderTypeId: string) => {
-      // Define processFoods inside useCallback to avoid dependency warning
       const processFoods = (foods: APIFoodItem[]): FoodItem[] => {
         return sortFoodItems(
           foods.map(
@@ -117,7 +119,6 @@ export default function OrderEntry({ user }: OrderEntryProps) {
     fetchWithAuth("/api/orderType")
       .then((res) => res.json())
       .then((types: OrderType[]) => {
-        console.log("Fetched Order Types:", types); // ✅ Add this line
         setOrderTypes(types);
         const dineIn = types.find((t) => t.name === "Dine In");
         if (dineIn) {
@@ -127,172 +128,126 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       });
   }, []);
 
-  const [selectedItems, setSelectedItems] = useState<{
-    [id: string]: {
-      quantity: number;
-      selectedOptions: {
-        [optionId: string]: number;
-      };
-      remark?: string;
-    };
-  }>({});
+  // Check if two sets share the same configuration (food, cut, sambal, and remark)
+  const isSameSetConfiguration = (a: OrderCartSet, b: OrderCartSet): boolean => {
+    const sameFood = a.foodId === b.foodId;
+    const sameCut = (a.selectedCut?.id || null) === (b.selectedCut?.id || null);
+    const sameSambal = (a.selectedSambal?.id || null) === (b.selectedSambal?.id || null);
+    const sameRemark =
+      (a.remark || "").trim().toLowerCase() === (b.remark || "").trim().toLowerCase();
 
-  const handleToggleSelect = (id: string) => {
-    setSelectedItems((prev) =>
-      id in prev
-        ? Object.fromEntries(Object.entries(prev).filter(([key]) => key !== id))
-        : {
-          ...prev,
-          [id]: { quantity: 1, selectedOptions: {}, remark: "" },
-        }
+    return sameFood && sameCut && sameSambal && sameRemark;
+  };
+
+  // Save / Add / Update Set with Auto-Merge
+  const handleSaveSet = (
+    incomingSet: OrderCartSet,
+    editingTempId?: string | null
+  ) => {
+    setCartSets((prevSets) => {
+      if (editingTempId) {
+        // We were editing a specific set
+        return prevSets.map((s) =>
+          s.tempId === editingTempId ? { ...incomingSet, tempId: editingTempId } : s
+        );
+      }
+
+      // Check if identical combo already exists in cart -> auto-merge
+      const matchIndex = prevSets.findIndex((s) =>
+        isSameSetConfiguration(s, incomingSet)
+      );
+
+      if (matchIndex !== -1) {
+        const updated = [...prevSets];
+        updated[matchIndex] = {
+          ...updated[matchIndex],
+          quantity: updated[matchIndex].quantity + incomingSet.quantity,
+        };
+        return updated;
+      }
+
+      // Otherwise create a new set
+      return [...prevSets, incomingSet];
+    });
+
+    setEditingSet(null);
+  };
+
+  const handleEditSet = (set: OrderCartSet) => {
+    setEditingSet(set);
+  };
+
+  const handleDeleteSet = (tempId: string) => {
+    setCartSets((prev) => prev.filter((s) => s.tempId !== tempId));
+    if (editingSet?.tempId === tempId) {
+      setEditingSet(null);
+    }
+  };
+
+  const handleChangeSetQuantity = (tempId: string, delta: number) => {
+    setCartSets((prev) =>
+      prev
+        .map((s) => {
+          if (s.tempId === tempId) {
+            const newQty = s.quantity + delta;
+            return { ...s, quantity: newQty };
+          }
+          return s;
+        })
+        .filter((s) => s.quantity > 0)
     );
   };
 
-  const handleChangeRemark = (id: string, remark: string) => {
-    setSelectedItems((prev) => {
-      const item = prev[id];
-      if (!item) return prev;
-      return {
-        ...prev,
-        [id]: { ...item, remark },
-      };
-    });
-  };
-
-  const handleChangeQuantity = (id: string, delta: number) => {
-    setSelectedItems((prev) => {
-      const item = prev[id];
-      if (!item) return prev;
-      const newQty = item.quantity + delta;
-      if (newQty <= 0) {
-        const newItems = { ...prev };
-        delete newItems[id];
-        return newItems;
-      }
-      return {
-        ...prev,
-        [id]: { ...item, quantity: newQty },
-      };
-    });
-  };
-
-  const handleToggleOption = (foodId: string, optionId: string) => {
-    setSelectedItems((prev) => {
-      const item = prev[foodId];
-      if (!item) return prev;
-
-      const optionQty = item.selectedOptions[optionId] ?? 0;
-
-      const newOptions = { ...item.selectedOptions };
-      if (optionQty > 0) {
-        delete newOptions[optionId];
-      } else {
-        newOptions[optionId] = 1;
-      }
-
-      return {
-        ...prev,
-        [foodId]: { ...item, selectedOptions: newOptions },
-      };
-    });
-  };
-
-  const handleChangeOptionQuantity = (
-    foodId: string,
-    optionId: string,
-    delta: number
-  ) => {
-    setSelectedItems((prev) => {
-      const item = prev[foodId];
-      if (!item) return prev;
-
-      const currentQty = item.selectedOptions[optionId] ?? 0;
-      const newQty = currentQty + delta;
-
-      const newOptions = { ...item.selectedOptions };
-      if (newQty <= 0) {
-        delete newOptions[optionId];
-      } else {
-        newOptions[optionId] = newQty;
-      }
-
-      return {
-        ...prev,
-        [foodId]: { ...item, selectedOptions: newOptions },
-      };
-    });
-  };
-
-  // Helper to get the price for a food item (first price or by orderType if needed)
-  const getFoodPrice = (item: FoodItem) => {
-    if (!item.prices || item.prices.length === 0) return 0;
-    // You can filter by orderTypeId if you want to support order type selection
-    return item.prices[0].price;
-  };
-
   const calculateTotalPrice = () => {
-    let total = 0;
-
-    for (const id in selectedItems) {
-      const menuItem = menu.find((item) => item.id === id);
-      if (!menuItem) continue;
-
-      const item = selectedItems[id];
-      total += getFoodPrice(menuItem) * item.quantity;
-
-      for (const optionId in item.selectedOptions) {
-        const option = menuItem.options.find((opt) => opt.id === optionId);
-        if (!option) continue;
-
-        const optionQty = item.selectedOptions[optionId];
-        total += option.extraPrice * optionQty;
-      }
-    }
-
-    return total;
+    return cartSets.reduce((sum, set) => {
+      const cutExtra = set.selectedCut?.extraPrice || 0;
+      const sambalExtra = set.selectedSambal?.extraPrice || 0;
+      const otherExtra = (set.otherOptions || []).reduce(
+        (acc, opt) => acc + opt.extraPrice * (opt.quantity || 1),
+        0
+      );
+      const unitTotal = set.foodPrice + cutExtra + sambalExtra + otherExtra;
+      return sum + unitTotal * set.quantity;
+    }, 0);
   };
 
   const submitOrder = async () => {
-    console.log("Start submitOrder");
-
     const currentOrderTypeName = selectedOrderType?.name;
 
     if (selectedOrderType?.name === "Dine In" && !selectedTableId) {
       alert("Please select a table before submitting an order.");
-      console.warn("Submission blocked: No table selected.");
       return;
     }
 
-    if (currentOrderTypeName == "Take Away" && !customerName) {
+    if (currentOrderTypeName === "Take Away" && !customerName) {
       alert("Customer Name is required for this order type.");
-      console.warn("Submission blocked: Customer Name missing.");
       return;
     }
 
-    const items = Object.entries(selectedItems)
-      .map(([foodId, itemData]) => {
-        const menuItem = menu.find((m) => m.id === foodId);
-        if (!menuItem) return null;
-
-        return {
-          foodId,
-          quantity: itemData.quantity,
-          options: Object.entries(itemData.selectedOptions).map(
-            ([optionId, quantity]) => ({
-              optionId,
-              quantity,
-            })
-          ),
-          remark: itemData.remark || null,
-        };
-      })
-      .filter(Boolean);
-
-    if (items.length === 0) {
+    if (cartSets.length === 0) {
       alert("Please select at least one menu item.");
-      console.warn("Submission blocked: No items selected.");
       return;
     }
+
+    const items = cartSets.map((set) => {
+      const options: { optionId: string; quantity: number }[] = [];
+      if (set.selectedCut) {
+        options.push({ optionId: set.selectedCut.id, quantity: set.quantity });
+      }
+      if (set.selectedSambal) {
+        options.push({ optionId: set.selectedSambal.id, quantity: set.quantity });
+      }
+      (set.otherOptions || []).forEach((opt) => {
+        options.push({ optionId: opt.id, quantity: (opt.quantity || 1) * set.quantity });
+      });
+
+      return {
+        foodId: set.foodId,
+        quantity: set.quantity,
+        options,
+        remark: set.remark || null,
+      };
+    });
 
     let customerNamePayload: string | null = null;
     let onlineCodePayload: string | null = null;
@@ -321,11 +276,9 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       orderTypeId: selectedOrderTypeId,
       items,
       remark: orderRemark,
-      customerName: customerNamePayload, // Included dynamically
-      onlineCode: onlineCodePayload, // Included dynamically
+      customerName: customerNamePayload,
+      onlineCode: onlineCodePayload,
     };
-
-    console.log("Submitting order payload:", payload);
 
     try {
       const response = await fetchWithAuth("/api/orders", {
@@ -341,13 +294,14 @@ export default function OrderEntry({ user }: OrderEntryProps) {
       }
 
       const result = await response.json();
-      const orderId = result.id; // Use 'id' or 'orderId' based on your API structure
+      const orderId = result.id;
 
-      setSelectedItems({});
+      setCartSets([]);
       setOrderRemark("");
       setSelectedTableId("");
-      setCustomerName(""); // Reset customer name
-      setOnlineCode(""); // Reset online code
+      setCustomerName("");
+      setOnlineCode("");
+      setEditingSet(null);
 
       if (orderId) {
         navigate(`/billing/${orderId}`);
@@ -360,39 +314,16 @@ export default function OrderEntry({ user }: OrderEntryProps) {
     }
   };
 
-  const getDisplayMenu = () => {
-    return menu.map((item) => {
-      const selection = selectedItems[item.id];
-      const isSelected = !!selection;
-
-      const enrichedOptions = (item.options ?? []).map((opt) => ({
-        ...opt,
-        selected: selection?.selectedOptions[opt.id] > 0,
-        quantity: selection?.selectedOptions[opt.id] || 1,
-      }));
-
-      return {
-        ...item,
-        selected: isSelected,
-        quantity: selection?.quantity || 1,
-        options: enrichedOptions,
-        remark: selection?.remark || "",
-      };
-    });
-  };
-
-  // When order type changes, update state and clear table selection if not DINE_IN
   const handleOrderTypeChange = (orderTypeId: string) => {
     setSelectedOrderTypeId(orderTypeId);
     const foundType = orderTypes.find((t) => t.id === orderTypeId);
     setSelectedOrderType(foundType || null);
 
-    // Clear Dining Table, Customer Name, and Online Code based on new order type
     if (foundType?.name !== "Dine In") {
-      setSelectedTableId(""); // Clear table if not Dine In
+      setSelectedTableId("");
     }
-    setCustomerName(""); // Always clear to ensure fresh input for relevant order types
-    setOnlineCode(""); // Always clear
+    setCustomerName("");
+    setOnlineCode("");
   };
 
   return (
@@ -402,10 +333,8 @@ export default function OrderEntry({ user }: OrderEntryProps) {
         <div className="w-full lg:flex-1 space-y-6">
           {/* Header Section: H1, Selectors, Inputs, and Logo */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* Form elements */}
             <div className="flex-1 min-w-[280px] md:min-w-[350px] space-y-4">
               <h1 className="text-2xl text-white font-bold">Create Order</h1>
-              {/* Order Type Selector */}
               <OrderTypeSelector
                 orderTypes={orderTypes}
                 selectedOrderTypeId={selectedOrderTypeId}
@@ -421,7 +350,6 @@ export default function OrderEntry({ user }: OrderEntryProps) {
                 />
               )}
 
-              {/* Conditional Rendering for Customer Name & Online Code */}
               {(selectedOrderType?.name === "Take Away" ||
                 selectedOrderType?.name === "GrabFood" ||
                 selectedOrderType?.name === "ShopeeFood" ||
@@ -464,27 +392,55 @@ export default function OrderEntry({ user }: OrderEntryProps) {
 
           {/* Food Menu */}
           <MenuItemList
-            menu={getDisplayMenu()}
-            onToggleSelect={handleToggleSelect}
-            onChangeQuantity={handleChangeQuantity}
-            onToggleOption={handleToggleOption}
-            onChangeOptionQuantity={handleChangeOptionQuantity}
-            onChangeRemark={handleChangeRemark}
+            menu={menu}
+            cartSets={cartSets}
+            onSaveSet={handleSaveSet}
+            editingSet={editingSet}
+            onCloseEdit={() => setEditingSet(null)}
           />
         </div>
 
         {/* Right Column: Order Summary & Checkout (Sticky on Desktop) */}
-        <div className="w-full lg:w-96 xl:w-[420px] lg:sticky lg:top-8 shrink-0">
+        <div id="order-summary-section" className="w-full lg:w-96 xl:w-[420px] lg:sticky lg:top-8 shrink-0 pb-16 lg:pb-0">
           <OrderSummary
-            selectedFoods={getDisplayMenu().filter((item) => item.selected)}
+            cartSets={cartSets}
             totalPrice={calculateTotalPrice()}
             orderRemark={orderRemark}
             setOrderRemark={setOrderRemark}
             submitOrder={submitOrder}
             currentUserRole={user?.role || null}
+            onEditSet={handleEditSet}
+            onDeleteSet={handleDeleteSet}
+            onChangeSetQuantity={handleChangeSetQuantity}
           />
         </div>
       </div>
+
+      {/* Mobile / Tablet Floating Cart Bar (visible only on mobile/tablet below lg when items in cart) */}
+      {cartSets.length > 0 && (
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-gradient-to-r from-emerald-500 to-green-400 text-slate-950 p-3 rounded-2xl shadow-2xl flex items-center justify-between border border-white/30 backdrop-blur">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-900/80">
+              {cartSets.length} {cartSets.length === 1 ? "Set" : "Sets"} in Cart
+            </div>
+            <div className="text-base sm:text-lg font-extrabold leading-none mt-0.5">
+              Rp {calculateTotalPrice().toLocaleString("id-ID")}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const summaryEl = document.getElementById("order-summary-section");
+              summaryEl?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="bg-slate-950 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md hover:bg-slate-900 active:scale-95 transition cursor-pointer touch-manipulation"
+          >
+            Review & Pay ↓
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
+

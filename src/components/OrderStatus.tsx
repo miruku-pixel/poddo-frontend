@@ -258,6 +258,24 @@ const OrderStatus: React.FC<Props> = ({ orders, onStatusUpdateSuccess }) => {
                         Online Code: {order.onlineCode}
                       </span>
                     )}
+                    {/* Paid Date and Time */}
+                    {order.paidAt && (
+                      <div className="font-mono text-xs sm:text-sm text-emerald-300 mt-1 flex flex-wrap items-center gap-x-1.5">
+                        <span className="bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40 text-emerald-300">
+                          🕒 Paid: {new Date(order.paidAt).toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          {new Date(order.paidAt).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
